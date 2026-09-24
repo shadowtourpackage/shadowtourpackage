@@ -6,7 +6,7 @@
   "homepage": "https://github.com/shadowtourpackage/shadowtourpackage",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --base=/shadow/",
+    "build": "vite build --base=/shadowtourpackage/",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
