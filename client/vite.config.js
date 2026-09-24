@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/shadow/', // Replace with your exact GitHub repository name
+  base: '/shadowtourpackage/', // Replace with your exact GitHub repository name
 })

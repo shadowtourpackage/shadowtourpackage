@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://github.com/harshuuuuuuuuuuuuuuu/shadow",
+  "homepage": "https://github.com/shadowtourpackage/shadowtourpackage",
   "scripts": {
     "dev": "vite",
     "build": "vite build --base=/shadow/",
