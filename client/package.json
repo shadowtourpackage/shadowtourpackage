@@ -3,10 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://github.com/shadowtourpackage/shadowtourpackage",
+  "homepage": "https://github.com/shadowtourpackage/",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --base=/shadowtourpackage/",
+    "build": "vite build --base=/",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
