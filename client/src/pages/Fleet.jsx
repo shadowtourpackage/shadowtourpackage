@@ -1,0 +1,158 @@
+import { useState } from 'react';
+import {
+  Armchair, ArrowRight, BusFront, ChevronLeft, ChevronRight,
+  Gem, Luggage, Settings, ShieldCheck, Snowflake, UsersRound,
+} from 'lucide-react';
+import { coaches, amenities } from '../data/coaches.js';
+
+export default function Fleet() {
+  const [activeId, setActiveId] = useState('twinkle');
+  const active = coaches.find((coach) => coach.id === activeId) || coaches[0];
+  const choose = (id) => { 
+    setActiveId(id); 
+    document.getElementById('fleet-details')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); 
+  };
+  const move = (direction) => { 
+    const index = coaches.findIndex((coach) => coach.id === activeId); 
+    choose(coaches[(index + direction + coaches.length) % coaches.length].id); 
+  };
+
+  return (
+    <section className="fleet-page" id="fleet">
+      <style>{styles}</style>
+      <section className="fleet-page__hero" style={{ '--hero-image': `url(${active.hero})` }}>
+        <div className="fleet-page__hero-overlay" />
+        <div className="fleet-page__shell fleet-page__hero-content">
+          <div className="fleet-page__intro">
+            <p className="fleet-page__eyebrow">OUR FLEET</p>
+            <h1 className="reveal">TRAVEL IN <strong>COMFORT &amp; STYLE</strong></h1>
+            <span className="fleet-page__gold-stroke" />
+            <p className="reveal">A fleet of carefully maintained buses, designed to make every journey comfortable, safe, and memorable.</p>
+            <div className="fleet-page__promise reveal">
+              <Feature icon={Settings} title="Well" text="Maintained" />
+              <Feature icon={ShieldCheck} title="Safe &amp;" text="Reliable" />
+              <Feature icon={UsersRound} title="Comfortable" text="Journeys" />
+              <Feature icon={Gem} title="Modern" text="Amenities" />
+            </div>
+          </div>
+          <div className="fleet-page__hero-coach reveal" aria-label={`${active.name} coach`}>
+            <img
+              src={active.hero}
+              alt={`${active.name} tour bus`}
+              style={{ display: 'none' }}
+            />
+            <div className="fleet-page__coach-label reveal">
+              <b>{active.name}</b>
+              <span>{active.type}</span>
+            </div>
+            <div className="fleet-page__coach-quick">
+              <span><BusFront /> {active.seats}</span>
+              <span><Snowflake /> AC</span>
+              <span><Luggage /> Spacious luggage</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="fleet-page__picker" aria-label="Choose a coach">
+        <div className="fleet-page__shell">
+          <div className="fleet-page__picker-head">
+            <p className="fleet-page__eyebrow">OUR FLEET</p>
+            <p className="reveal">Each bus in our fleet is part of our journey to create unforgettable travel experiences.</p>
+          </div>
+          <div className="fleet-page__coach-rail-wrap">
+            <button className="fleet-page__arrow fleet-page__arrow--left" onClick={() => move(-1)} aria-label="Previous coach">
+              <ChevronLeft />
+            </button>
+            <div className="fleet-page__coach-rail reveal">
+              {coaches.map((coach) => (
+                <button
+                  key={coach.id}
+                  className={`fleet-page__coach-card ${coach.id === activeId ? 'is-active' : ''}`}
+                  onClick={() => choose(coach.id)}
+                  aria-pressed={coach.id === activeId}
+                >
+                  <img src={coach.image} alt="" />
+                  <span>{coach.name}</span>
+                </button>
+              ))}
+            </div>
+            <button className="fleet-page__arrow fleet-page__arrow--right" onClick={() => move(1)} aria-label="Next coach">
+              <ChevronRight />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="fleet-page__details" id="fleet-details">
+        <div className="fleet-page__shell fleet-page__details-grid reveal">
+          <div>
+            <h2>{active.name.toUpperCase()}</h2>
+            <p className="fleet-page__coach-type reveal">{active.type}</p>
+            <span className="fleet-page__gold-stroke reveal" />
+            <p className="fleet-page__description">{active.description}</p>
+          </div>
+          <div className="fleet-page__amenities">
+            <div className="fleet-page__seat-count">
+              <Armchair /> <b>{active.seats}</b><span>Seating capacity</span>
+            </div>
+            {amenities.slice(0, 5).map(([Icon, title, text]) => (
+              <div className="fleet-page__amenity" key={title}>
+                <Icon />
+                <p><b>{title}</b><span>{text}</span></p>
+              </div>
+            ))}
+          </div>
+          <p className="fleet-page__handwriting">Travel<br />Together<br />Further</p>
+        </div>
+      </section>
+
+      <section className="fleet-page__gallery">
+        <div className="fleet-page__shell">
+          <p className="fleet-page__eyebrow">FLEET GALLERY</p>
+          <div className="fleet-page__gallery-sub">
+            <span className="fleet-page__gold-stroke" />A closer look at our buses
+          </div>
+          <div className="fleet-page__gallery-grid reveal">
+            {coaches.map((coach) => (
+              <button
+                key={coach.id}
+                onClick={() => choose(coach.id)}
+                className={coach.id === activeId ? 'is-active' : ''}
+              >
+                <img src={coach.image} alt={`${coach.name} coach`} />
+                <span>{coach.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="fleet-page__cta">
+        <div className="fleet-page__shell reveal">
+          <div>
+            <p className="fleet-page__eyebrow reveal">READY TO TRAVEL?</p>
+            <h2 className='reveal'>LET’S PLAN <strong>YOUR JOURNEY</strong></h2>
+            <span className="fleet-page__gold-stroke" />
+            <p>Travel with comfort. Travel with Shadow.</p>
+          </div>
+          <a href="/#book" className="fleet-page__book">Book your coach <ArrowRight size={18} /></a>
+        </div>
+      </section>
+    </section>
+  );
+}
+
+function Feature({ icon: Icon, title, text }) {
+  return (
+    <span>
+      <Icon />
+      <b>{title}</b>
+      <small>{text}</small>
+    </span>
+  );
+}
+
+const styles = `
+.fleet-page{--fp-navy:#02182c;--fp-blue:#00c7ef;--fp-gold:#ffd415;--fp-white:#f7fbff;color:#fff;background:var(--fp-navy);font-family:inherit}.fleet-page *{box-sizing:border-box}.fleet-page__shell{width:min(1180px,calc(100% - 48px));margin:auto}.fleet-page__hero{min-height:590px;position:relative;overflow:hidden;background:#041e34}.fleet-page__hero:before{content:'';position:absolute;inset:0;background-image:var(--hero-image);background-size:cover;background-position:center;opacity:.58;filter:saturate(1.2)}.fleet-page__hero-overlay{position:absolute;inset:0;background:linear-gradient(90deg,#01182cf2 0%,#01182cc4 38%,#00172924 75%),linear-gradient(0deg,#001629c9,transparent 42%)}.fleet-page__hero-content{position:relative;min-height:590px;display:grid;grid-template-columns:48% 52%;align-items:center}.fleet-page__intro{position:relative;z-index:2;padding:74px 0 34px}.fleet-page__eyebrow{margin:0 0 13px;color:#8fb6ca;font-size:12px;font-weight:800;letter-spacing:7px}.fleet-page h1,.fleet-page h2{margin:0;font-family:Impact,'Arial Narrow Bold',sans-serif;font-style:italic;letter-spacing:.5px;line-height:.92}.fleet-page h1{font-size:clamp(3.4rem,5.7vw,5.7rem);max-width:520px}.fleet-page h1 strong,.fleet-page h2 strong{display:block;color:var(--fp-blue)}.fleet-page__gold-stroke{display:block;width:130px;height:6px;margin:18px 0;background:var(--fp-gold);clip-path:polygon(0 34%,100% 0,90% 63%,7% 100%)}.fleet-page__intro>p:not(.fleet-page__eyebrow){max-width:405px;line-height:1.55;font-size:16px}.fleet-page__promise{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:42px;padding-top:22px;border-top:1px solid #3b728955}.fleet-page__promise span{display:grid;gap:4px;justify-items:start;font-size:12px;line-height:1}.fleet-page__promise svg{color:var(--fp-blue);width:31px;height:31px;margin-bottom:4px}.fleet-page__promise b{font-size:12px}.fleet-page__promise small{font-size:11px}.fleet-page__hero-coach{position:relative;align-self:end;height:490px;z-index:1}.fleet-page__hero-coach>img{width:115%;height:100%;object-fit:contain;object-position:bottom right;filter:drop-shadow(0 18px 12px #0009)}.fleet-page__coach-label{position:absolute;right:1%;bottom:52px;text-align:right;text-transform:uppercase}.fleet-page__coach-label b{display:block;font:italic 27px Impact,sans-serif}.fleet-page__coach-label span{font-size:10px;letter-spacing:1px}.fleet-page__coach-quick{position:absolute;right:0;bottom:5px;display:flex;gap:20px;font-size:12px;font-weight:700}.fleet-page__coach-quick span{display:flex;gap:6px;align-items:center}.fleet-page__coach-quick svg{width:20px;color:#fff}.fleet-page__picker{padding:26px 0 36px;background:linear-gradient(135deg,#033456,#00182d)}.fleet-page__picker-head{display:flex;justify-content:space-between;align-items:center;gap:20px}.fleet-page__picker-head p:last-child{font-size:12px;margin:0;color:#dcecf6}.fleet-page__coach-rail-wrap{position:relative}.fleet-page__coach-rail{display:flex;gap:10px;overflow-x:auto;padding:15px 3px 4px;scroll-snap-type:x mandatory;scrollbar-width:none}.fleet-page__coach-rail::-webkit-scrollbar{display:none}.fleet-page__coach-card{position:relative;flex:0 0 126px;padding:0;background:#092742;border:1px solid #47718b;border-radius:7px;overflow:hidden;color:#fff;cursor:pointer;scroll-snap-align:start}.fleet-page__coach-card img{height:164px;width:100%;object-fit:cover;display:block}.fleet-page__coach-card span{display:block;padding:10px 5px 9px;text-transform:uppercase;font:14px Impact,sans-serif;letter-spacing:.3px}.fleet-page__coach-card.is-active{border:2px solid var(--fp-gold);box-shadow:0 0 15px #ffd41571}.fleet-page__arrow{position:absolute;z-index:1;top:50%;transform:translateY(-50%);width:38px;height:38px;border:0;border-radius:50%;background:var(--fp-blue);color:#00334d;display:grid;place-items:center}.fleet-page__arrow--left{left:-20px}.fleet-page__arrow--right{right:-20px}.fleet-page__details{position:relative;padding:55px 0;background:linear-gradient(100deg,#02263f,#00172a)}.fleet-page__details:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 65%,#0e46633d),url('/images/fleet/mountain-road.jpg') right/contain no-repeat;opacity:.6;pointer-events:none}.fleet-page__details-grid{position:relative;z-index:1;display:grid;grid-template-columns:30% 58% 12%;gap:30px;align-items:center}.fleet-page h2{font-size:clamp(2.5rem,4vw,4rem)}.fleet-page__coach-type{color:var(--fp-blue);font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:1px;font-style:italic;margin:5px 0}.fleet-page__description{max-width:270px;font-size:14px;line-height:1.55}.fleet-page__amenities{display:grid;grid-template-columns:repeat(3,1fr);gap:25px 20px}.fleet-page__amenity,.fleet-page__seat-count{display:flex;gap:10px;align-items:flex-start}.fleet-page__amenity svg,.fleet-page__seat-count svg{width:28px;min-width:28px;color:#fff}.fleet-page__amenity p{margin:0;display:grid;gap:2px;font-size:12px}.fleet-page__amenity b{font-size:13px}.fleet-page__amenity span,.fleet-page__seat-count span{font-size:11px}.fleet-page__seat-count{display:grid;grid-template-columns:30px auto;align-items:center}.fleet-page__seat-count span{grid-column:2}.fleet-page__handwriting{font:33px/1 cursive;color:#fff;transform:rotate(-10deg);margin:0}.fleet-page__gallery{padding:30px 0 48px;background:linear-gradient(135deg,#022b48,#00182c)}.fleet-page__gallery-sub{display:flex;align-items:center;gap:10px;margin:-10px 0 20px;font-size:13px}.fleet-page__gallery-sub .fleet-page__gold-stroke{width:52px;margin:0}.fleet-page__gallery-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}.fleet-page__gallery-grid button{padding:0;position:relative;border:1px solid #6a9bb5;border-radius:8px;background:#092740;overflow:hidden;cursor:pointer;color:#fff}.fleet-page__gallery-grid img{display:block;width:100%;aspect-ratio:.7;object-fit:cover}.fleet-page__gallery-grid span{position:absolute;bottom:0;left:0;right:0;padding:13px 5px 7px;background:linear-gradient(transparent,#001426);font:14px Impact,sans-serif;text-transform:uppercase;opacity:0;transition:.2s}.fleet-page__gallery-grid button:hover span,.fleet-page__gallery-grid button.is-active span{opacity:1}.fleet-page__gallery-grid button.is-active{border:2px solid var(--fp-gold)}.fleet-page__cta{padding:42px 0;background:linear-gradient(90deg,#00172ae8,#00172a88),url('/images/fleet/mountain-road.jpg') center/cover}.fleet-page__cta .fleet-page__shell{display:flex;justify-content:space-between;align-items:center;gap:30px}.fleet-page__cta h2{font-size:clamp(2.2rem,4vw,3.7rem)}.fleet-page__cta p:last-child{margin-bottom:0}.fleet-page__book{display:inline-flex;align-items:center;gap:9px;padding:15px 19px;border-radius:6px;background:var(--fp-gold);color:#052039;text-transform:uppercase;font-weight:900;font-size:12px;text-decoration:none;white-space:nowrap}@media(max-width:900px){.fleet-page__hero-content{grid-template-columns:1fr;min-height:720px}.fleet-page__intro{padding-top:110px}.fleet-page__hero-coach{height:340px;margin-top:-80px}.fleet-page__hero-coach>img{width:100%;object-position:center bottom}.fleet-page__coach-label{right:5%;bottom:48px}.fleet-page__coach-quick{right:5%}.fleet-page__details-grid{grid-template-columns:1fr 1.5fr}.fleet-page__handwriting{display:none}.fleet-page__gallery-grid{grid-template-columns:repeat(4,1fr)}}@media(max-width:600px){.fleet-page__shell{width:min(100% - 32px,1180px)}.fleet-page__hero{min-height:690px}.fleet-page__hero::before{background-size: cover;background-position: 65% center;}.fleet-page__hero-content{min-height:690px}.fleet-page__intro{padding-top:100px}.fleet-page h1{font-size:3.45rem}.fleet-page__intro>p:not(.fleet-page__eyebrow){font-size:14px}.fleet-page__promise{gap:12px;margin-top:25px}.fleet-page__promise svg{width:25px;height:25px}.fleet-page__promise b,.fleet-page__promise small{font-size:10px}.fleet-page__hero-coach{height:295px;margin-top:-45px}.fleet-page__coach-label{bottom:43px;font-size:10px}.fleet-page__coach-label b{font-size:21px}.fleet-page__coach-quick{gap:10px;font-size:10px}.fleet-page__coach-quick svg{width:15px}.fleet-page__picker{padding:23px 0}.fleet-page__picker-head{display:block}.fleet-page__picker-head p:last-child{line-height:1.4}.fleet-page__coach-card{flex-basis:105px}.fleet-page__coach-card img{height:138px}.fleet-page__arrow{display:none}.fleet-page__details{padding:42px 0}.fleet-page__details-grid{grid-template-columns:1fr;gap:22px}.fleet-page__description{max-width:400px}.fleet-page__amenities{grid-template-columns:1fr 1fr;gap:20px 12px}.fleet-page__gallery-grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px}.fleet-page__gallery-grid button{flex:0 0 145px;scroll-snap-align:start}.fleet-page__gallery-grid span{opacity:1}.fleet-page__cta .fleet-page__shell{display:block}.fleet-page__book{margin-top:18px}.fleet-page__cta{padding:36px 0}.fleet-page__eyebrow{letter-spacing:5px;font-size:10px}}
+`;

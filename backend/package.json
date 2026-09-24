@@ -1,0 +1,16 @@
+{
+  "name": "shadow-tours-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.3",
+    "mongoose": "^8.24.4",
+    "nodemailer": "^10.0.10"
+  }
+}

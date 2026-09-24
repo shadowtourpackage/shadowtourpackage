@@ -1,0 +1,150 @@
+/* Common / global styles — extracted without changing declarations */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Yellowtail&display=swap');
+
+
+
+:root {
+
+  --navy: #031b35;
+
+  --blue: #00a9e9;
+
+  --gold: #ffd21b;
+
+  --ink: #08233f;
+
+  --paper: #f6fbff;
+
+}
+
+* {
+
+  box-sizing: border-box;
+
+}
+
+html {
+
+  scroll-behavior: smooth;
+
+}
+
+body {
+
+  margin: 0;
+
+  color: var(--ink);
+
+  font-family: 'DM Sans', sans-serif;
+
+}
+
+button,
+
+input,
+
+select {
+
+  font: inherit;
+
+}
+
+button {
+
+  cursor: pointer;
+
+}/* =========================
+   PAGE OPEN REVEAL
+========================= */
+
+.page-reveal {
+  animation: pageReveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pageReveal {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================
+   SCROLL REVEAL
+========================= */
+/* =========================
+   INITIAL WEBSITE REVEAL
+========================= */
+
+.page-reveal {
+  animation: pageReveal 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pageReveal {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================
+   SCROLL REVEAL
+========================= */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(45px);
+  transition:
+    opacity 0.8s ease,
+    transform 0.8s ease;
+}
+
+.reveal.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Destination Book Now Button */
+.card .destination-book-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    width: auto;
+    min-width: 86px;
+    height: 10px;
+    padding: 13px 0px 15px 6px;
+    background: #ffd400;
+    color: #06213a;
+    border: none;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+.card .destination-book-btn svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2.5;
+}
+
+.card .destination-book-btn:hover {
+  background: #ffffff;
+  color: #06213a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
