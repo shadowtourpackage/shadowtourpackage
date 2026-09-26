@@ -1,12 +1,13 @@
 /* =========================================================
-   GALLERY PAGE – single consolidated stylesheet
-   ========================================================= */
+   GALLERY PAGE – clean consolidated stylesheet
+   Matches Destinations fonts / gold highlight / mobile scale
+========================================================= */
 
 .gallery-page {
   --gp-navy: #03182b;
   --gp-deep: #001323;
   --gp-blue: #00c9ef;
-  --gp-gold: #ffd319;
+  --gp-gold: #ffd21c;
   --gp-cream: #effaff;
   color: #fff;
   background: var(--gp-deep);
@@ -24,18 +25,17 @@
 
 /* ---------------------------------------------------------
    HERO
-   --------------------------------------------------------- */
+--------------------------------------------------------- */
 .gallery-page__hero {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  min-height: 590px;
+  min-height: 58vh;
   background: #01182c;
   display: flex;
   align-items: center;
 }
 
-/* Layer 1 – background photo */
 .gallery-page__hero-bg {
   position: absolute;
   inset: 0;
@@ -45,27 +45,27 @@
   object-position: 70% center;
   z-index: 1;
   display: block;
-  opacity: 1;
 }
 
-/* Layer 2 – gradient overlay */
 .gallery-page__hero-overlay {
   position: absolute;
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background:
-    linear-gradient(90deg, #01182cf8 0%, #01182ce6 42%, #01182c66 75%, transparent 100%),
-    linear-gradient(0deg, #001629e6 0%, transparent 40%);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 15, 35, 0.25) 0%,
+    rgba(0, 12, 28, 0.55) 40%,
+    #00101f 100%
+  );
 }
-
-/* Layer 3 – content */
+/* 2-column layout – matches JSX structure */
 .gallery-page__hero-content {
   position: relative;
   z-index: 3;
   width: min(1180px, calc(100% - 48px));
   margin: 0 auto;
-  min-height: 590px;
+  min-height: 58vh;
   display: grid;
   grid-template-columns: 55% 45%;
   align-items: center;
@@ -74,60 +74,65 @@
 .gallery-page__intro {
   position: relative;
   z-index: 2;
-  padding: 74px 0 34px;
+  padding: 110px 0 40px;
 }
 
 .gallery-page__eyebrow {
-  margin: 0 0 14px;
+  margin: 0 0 18px;
   color: #91b4c6;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 6px;
 }
 
+/* Headings – same as Destinations */
 .gallery-page h1,
 .gallery-page h2 {
   margin: 0;
   font-family: Impact, "Arial Narrow Bold", sans-serif;
   font-style: italic;
-  letter-spacing: 0.4px;
-  line-height: 0.91;
+  letter-spacing: -1.5px;
+  line-height: 0.95;
+  color: #fff;
 }
 
 .gallery-page h1 {
-  font-size: clamp(3.4rem, 5.5vw, 5.5rem);
+  font-size: clamp(45px, 7vw, 88px);
   max-width: 550px;
 }
 
+/* Gold highlight (Destinations style) */
 .gallery-page h1 strong,
 .gallery-page h2 strong {
-  display: block;
-  color: var(--gp-blue);
+  display: inline;
+  color: var(--gp-gold);
 }
 
 .gallery-page__brush {
   display: block;
-  width: 135px;
-  height: 7px;
-  margin: 19px 0;
+  width: 130px;
+  height: 6px;
+  margin: 18px 0;
   background: var(--gp-gold);
-  clip-path: polygon(0 20%, 100% 0, 94% 60%, 20% 100%);
+  clip-path: polygon(0 34%, 100% 0, 90% 63%, 7% 100%);
 }
 
 .gallery-page__intro > p:not(.gallery-page__eyebrow) {
   max-width: 425px;
+  margin: 20px 0 0;
+  color: rgba(255, 255, 255, 0.75);
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
-/* Highlights row */
+/* Highlights */
 .gallery-page__highlights {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin: 28px 0 24px;
   padding-top: 20px;
-  border-top: 1px solid #3b728955;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .gallery-page__highlights span {
@@ -135,7 +140,7 @@
   gap: 4px;
   justify-items: start;
   font-size: 12px;
-  line-height: 1;
+  line-height: 1.1;
 }
 
 .gallery-page__highlights svg {
@@ -169,7 +174,7 @@
   text-transform: uppercase;
 }
 
-/* Script text on the right */
+/* Script on the right */
 .gallery-page__hero-tag {
   align-self: end;
   display: flex;
@@ -188,12 +193,11 @@
 
 .gallery-page__hero-script span {
   color: #ffffff;
-  text-shadow: 0 0 10px rgba(255, 0, 0, 0.85), 2px 2px 6px rgba(0, 0, 0, 0.95);
 }
 
 /* ---------------------------------------------------------
    CONTENT / GRID
-   --------------------------------------------------------- */
+--------------------------------------------------------- */
 .gallery-page__content {
   padding: 78px 0;
   background: linear-gradient(135deg, #042c47, #001728);
@@ -366,7 +370,7 @@
 
 /* ---------------------------------------------------------
    QUOTE + CTA
-   --------------------------------------------------------- */
+--------------------------------------------------------- */
 .gallery-page__quote {
   padding: 70px 0;
   background: #eefaff;
@@ -397,7 +401,8 @@
 
 .gallery-page__cta {
   padding: 52px 0;
-  background: linear-gradient(90deg, #00162eea, #00162e8c),
+  background:
+    linear-gradient(90deg, #00162eea, #00162e8c),
     url("/images/gallery/cta-road.jpg") center / cover;
 }
 
@@ -418,7 +423,7 @@
 
 /* ---------------------------------------------------------
    LIGHTBOX
-   --------------------------------------------------------- */
+--------------------------------------------------------- */
 .gallery-page__lightbox {
   position: fixed;
   z-index: 100;
@@ -492,19 +497,15 @@
 }
 
 /* ---------------------------------------------------------
-   MOBILE
-   --------------------------------------------------------- */
+   TABLET / MOBILE
+--------------------------------------------------------- */
 @media (max-width: 900px) {
   .gallery-page__hero {
-    min-height: 520px;
-    height: auto;
+    min-height: 52vh;
   }
 
   .gallery-page__hero-bg {
-    opacity: 0.85 !important;
     object-position: center 30%;
-    min-height: 100%;
-    height: 100%;
   }
 
   .gallery-page__hero-overlay {
@@ -514,28 +515,68 @@
       #01182cb0 40%,
       #01182c55 70%,
       #01182ce8 100%
-    ) !important;
+    );
   }
 
   .gallery-page__hero-content {
     grid-template-columns: 1fr;
-    min-height: auto;
+    min-height: 52vh;
     padding-bottom: 40px;
+    text-align: center;
   }
 
   .gallery-page__intro {
-    padding: 90px 0 30px;
+    padding: 105px 0 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .gallery-page__eyebrow {
+    font-size: 10px;
+    letter-spacing: 4px;
+    margin-bottom: 14px;
+  }
+
+  .gallery-page h1 {
+    font-size: 43px;
+    line-height: 0.98;
+    letter-spacing: 1px;
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .gallery-page__brush {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .gallery-page__intro > p:not(.gallery-page__eyebrow) {
+    max-width: 500px;
+    margin: 18px auto 0;
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  .gallery-page__highlights {
+    max-width: 500px;
+    width: 100%;
+  }
+
+  .gallery-page__highlights span {
+    justify-items: center;
   }
 
   .gallery-page__hero-tag {
-    justify-content: flex-start;
+    justify-content: center;
     padding-bottom: 20px;
   }
 
   .gallery-page__hero-script {
-    text-align: left;
+    text-align: center;
     transform: rotate(-5deg);
-    margin-left: 80px;
+    margin-left: 0;
   }
 }
 
@@ -544,16 +585,9 @@
     width: min(100% - 32px, 1180px);
   }
 
-  .gallery-page__hero {
-    min-height: 480px;
-  }
-
-  .gallery-page__hero-bg {
-    object-position: center 25%;
-  }
-
   .gallery-page__heading {
     display: block;
+    letter-spacing: 2px;
   }
 
   .gallery-page__heading > p {
@@ -630,5 +664,16 @@
   .gallery-page__highlights {
     gap: 10px;
     margin-top: 18px;
+  }
+}
+
+@media (max-width: 380px) {
+  .gallery-page h1 {
+    font-size: 38px;
+  }
+
+  .gallery-page__intro {
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }

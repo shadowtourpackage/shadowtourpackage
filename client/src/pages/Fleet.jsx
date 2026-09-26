@@ -8,13 +8,13 @@ import { coaches, amenities } from '../data/coaches.js';
 export default function Fleet() {
   const [activeId, setActiveId] = useState('twinkle');
   const active = coaches.find((coach) => coach.id === activeId) || coaches[0];
-  const choose = (id) => { 
-    setActiveId(id); 
-    document.getElementById('fleet-details')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); 
+  const choose = (id) => {
+    setActiveId(id);
+    document.getElementById('fleet-details')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
-  const move = (direction) => { 
-    const index = coaches.findIndex((coach) => coach.id === activeId); 
-    choose(coaches[(index + direction + coaches.length) % coaches.length].id); 
+  const move = (direction) => {
+    const index = coaches.findIndex((coach) => coach.id === activeId);
+    choose(coaches[(index + direction + coaches.length) % coaches.length].id);
   };
 
   return (
@@ -25,7 +25,9 @@ export default function Fleet() {
         <div className="fleet-page__shell fleet-page__hero-content">
           <div className="fleet-page__intro">
             <p className="fleet-page__eyebrow">OUR FLEET</p>
-            <h1 className="reveal">TRAVEL IN <strong>COMFORT &amp; STYLE</strong></h1>
+            <h1 className="reveal">
+              TRAVEL IN <strong>COMFORT &amp; STYLE</strong>
+            </h1>
             <span className="fleet-page__gold-stroke" />
             <p className="reveal">A fleet of carefully maintained buses, designed to make every journey comfortable, safe, and memorable.</p>
             <div className="fleet-page__promise reveal">

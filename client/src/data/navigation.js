@@ -1,9 +1,22 @@
-export const nav = ['Home', 'Destinations', 'Our Fleet', 'Gallery', 'About', 'Contact'];
+export const nav = [
+  'Home',
+  'Destinations',
+  'Our Fleet',
+  'Gallery',
+  'About',
+  'Contact',
+];
 
-export const sectionFor = (label) => ({
-  Home: 'home',
-  Destinations: 'destinations',
-  'Our Fleet': 'fleet',
-  Gallery: 'gallery',
-  Contact: 'contact'
-}[label] || 'about');
+export const sectionFor = (name) => {
+
+  const sections = {
+    Home: 'home',
+    Destinations: 'destinations',
+    'Our Fleet': 'fleet',
+    Gallery: 'gallery',
+    About: 'about',
+    Contact: 'contact',
+  };
+
+  return sections[name];
+};
