@@ -109,27 +109,6 @@ export default function Fleet() {
         </div>
       </section>
 
-      <section className="fleet-page__gallery">
-        <div className="fleet-page__shell">
-          <p className="fleet-page__eyebrow">FLEET GALLERY</p>
-          <div className="fleet-page__gallery-sub">
-            <span className="fleet-page__gold-stroke" />A closer look at our buses
-          </div>
-          <div className="fleet-page__gallery-grid reveal">
-            {coaches.map((coach) => (
-              <button
-                key={coach.id}
-                onClick={() => choose(coach.id)}
-                className={coach.id === activeId ? 'is-active' : ''}
-              >
-                <img src={coach.image} alt={`${coach.name} coach`} />
-                <span>{coach.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="fleet-page__cta">
         <div className="fleet-page__shell reveal">
           <div>

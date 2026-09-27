@@ -212,7 +212,7 @@ app.post('/api/reviews', async (req, res, next) => {
       rating: Number(rating) || 5,
       review: review ? review.trim() : '',
       videoUrl: videoUrl ? videoUrl.trim() : '',
-      approved: true,
+      approved: false,
     });
 
     const savedReview = await newReview.save();

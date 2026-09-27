@@ -4,10 +4,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Play,
-  PenLine,
-  ChartAreaIcon,
 } from 'lucide-react';
-import WriteReviewSection from './WriteReviewSection';
+
 import '../../styles/ReviewSection.css';
 
 const INSTAGRAM_HIGHLIGHTS_URL =
@@ -15,6 +13,10 @@ const INSTAGRAM_HIGHLIGHTS_URL =
 
 const API_BASE =
   import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+/* =====================================================
+   FALLBACK REVIEWS
+===================================================== */
 
 const fallbackReviews = [
   {
@@ -26,6 +28,7 @@ const fallbackReviews = [
     review:
       'Amazing experience with Shadow Tour Packages. Everything was well organised and the trip was really enjoyable.',
   },
+
   {
     _id: 'fallback-2',
     type: 'video',
@@ -34,6 +37,7 @@ const fallbackReviews = [
     rating: 5,
     videoUrl: '/videos/reviews/review1.mp4',
   },
+
   {
     _id: 'fallback-3',
     type: 'text',
@@ -43,6 +47,7 @@ const fallbackReviews = [
     review:
       'The whole journey was comfortable and memorable. Highly recommended for group trips.',
   },
+
   {
     _id: 'fallback-4',
     type: 'video',
@@ -53,183 +58,378 @@ const fallbackReviews = [
   },
 ];
 
+/* =====================================================
+   COMPONENT
+===================================================== */
+
 export default function ReviewSection() {
   const [reviews, setReviews] = useState(fallbackReviews);
-  const [current, setCurrent] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [showWriteReview, setShowWriteReview] = useState(false);
-  const formRef = useRef(null);
 
-  // Wrap fetch in useCallback so we can call it after review submission
-  const loadReviews = useCallback(() => {
-    fetch(`${API_BASE}/reviews`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to load reviews');
-        }
-        return response.json();
-      })
-      .then((result) => {
-        if (result.data && result.data.length > 0) {
-          setReviews(result.data);
-        }
-      })
-      .catch(() => {
-        setReviews(fallbackReviews);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+  const [current, setCurrent] = useState(0);
+
+  const [loading, setLoading] = useState(true);
+
+  const intervalRef = useRef(null);
+
+  /* =====================================================
+     LOAD REVIEWS FROM BACKEND
+  ===================================================== */
+
+  const loadReviews = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE}/reviews`);
+
+      if (!response.ok) {
+        throw new Error('Failed to load reviews');
+      }
+
+      const result = await response.json();
+
+      /*
+       * Only replace fallback reviews when the backend
+       * actually returns reviews.
+       */
+      if (
+        result &&
+        Array.isArray(result.data) &&
+        result.data.length > 0
+      ) {
+        setReviews(result.data);
+        setCurrent(0);
+      }
+    } catch (error) {
+      /*
+       * Keep fallback reviews if the backend is unavailable.
+       *
+       * IMPORTANT:
+       * The section will still render.
+       */
+      console.error('Failed to load reviews:', error);
+
+      setReviews(fallbackReviews);
+      setCurrent(0);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  /* =====================================================
+     INITIAL LOAD
+  ===================================================== */
 
   useEffect(() => {
     loadReviews();
   }, [loadReviews]);
 
-  const nextReview = () => {
-    setCurrent((previous) => (previous + 1) % reviews.length);
+  /* =====================================================
+     AUTO PLAY CAROUSEL
+     Changes review every 4.5 seconds
+  ===================================================== */
+
+  useEffect(() => {
+    if (reviews.length <= 1) {
+      return;
+    }
+
+    intervalRef.current = setInterval(() => {
+      setCurrent((prev) => {
+        return (prev + 1) % reviews.length;
+      });
+    }, 1500);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [reviews.length]);
+
+  /* =====================================================
+     RESET AUTO PLAY
+  ===================================================== */
+
+  const resetAutoPlay = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    if (reviews.length > 1) {
+      intervalRef.current = setInterval(() => {
+        setCurrent((prev) => {
+          return (prev + 1) % reviews.length;
+        });
+      }, 1500);
+    }
   };
+
+  /* =====================================================
+     NEXT REVIEW
+  ===================================================== */
+
+  const nextReview = () => {
+    setCurrent((prev) => {
+      return (prev + 1) % reviews.length;
+    });
+
+    resetAutoPlay();
+  };
+
+  /* =====================================================
+     PREVIOUS REVIEW
+  ===================================================== */
 
   const previousReview = () => {
-    setCurrent((previous) => (previous - 1 + reviews.length) % reviews.length);
+    setCurrent((prev) => {
+      return (prev - 1 + reviews.length) % reviews.length;
+    });
+
+    resetAutoPlay();
   };
 
-  const handleWriteReviewClick = () => {
-    setShowWriteReview((prev) => !prev);
-    if (!showWriteReview) {
-      setTimeout(() => {
-        formRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    }
+  /* =====================================================
+     GO TO SPECIFIC REVIEW
+  ===================================================== */
+
+  const goToReview = (index) => {
+    setCurrent(index);
+    resetAutoPlay();
   };
 
-  // Callback passed to WriteReviewSection: adds the review immediately to state & snaps to it
-  const handleReviewSubmitted = (newReview) => {
-    if (newReview) {
-      setReviews((prev) => [newReview, ...prev]);
-      setCurrent(0);
-    }
-  };
+  /* =====================================================
+     GET CURRENT REVIEW
+  ===================================================== */
 
   const review = reviews[current] || reviews[0];
 
-  if (loading) {
-    return (
-      <section id="reviews" className="reviews-section">
-        <div className="reviews-container">
-          <div className="reviews-heading">
-            <span>CUSTOMER EXPERIENCES</span>
-            <h2>What Our Travellers Say</h2>
-          </div>
-          <div className="reviews-loading">Loading reviews...</div>
-        </div>
-      </section>
-    );
+  /* =====================================================
+     SAFETY CHECK
+  ===================================================== */
+
+  if (!review) {
+    return null;
   }
 
+  /* =====================================================
+     MAIN JSX
+  ===================================================== */
+
   return (
-    <>
-      <section id="reviews" className="reviews-section">
-        <div className="reviews-container">
-          <div className="reviews-heading">
-            <span>CUSTOMER EXPERIENCES</span>
-            <h2>What Our Travellers Say</h2>
-            <p>Real experiences from people who travelled with Shadow Tour Packages.</p>
-          </div>
+    <section id="reviews" className="reviews-section">
+      <div className="reviews-container">
 
-          <div className="reviews-carousel">
-            <button
-              className="review-arrow review-arrow-left"
-              onClick={previousReview}
-              aria-label="Previous review"
-            >
-              <ChevronLeft size={22} />
-            </button>
+        {/* =================================================
+            HEADING
+        ================================================= */}
 
-            <div className="review-card-wrapper">
-              <div className="review-card">
-                {review.type === 'video' ? (
-                  <div className="review-video-container">
-                    <video
-                      className="review-video"
-                      src={review.videoUrl}
-                      controls
-                      playsInline
-                      preload="metadata"
-                    />
-                    <div className="video-label">
-                      <Play size={15} /> Video Review
-                    </div>
-                  </div>
-                ) : (
-                  <div className="written-review">
-                    <div className="quote-mark">“</div>
-                    <p className="review-text">{review.review}</p>
-                  </div>
-                )}
+        <div className="reviews-heading reveal">
+          <span>CUSTOMER EXPERIENCES</span>
 
-                <div className="review-info">
-                  <div className="review-person">
-                    <div className="review-avatar">
-                      {review.name?.charAt(0)?.toUpperCase() || 'C'}
-                    </div>
-                    <div>
-                      <h3>{review.name}</h3>
-                      <p>{review.destination}</p>
-                    </div>
+          <h2 className="reveal">
+            What Our Travellers Say
+          </h2>
+
+          <p className="reveal">
+            Real experiences from people who travelled with
+            Shadow Tour Packages.
+          </p>
+        </div>
+
+        {/* =================================================
+            CAROUSEL
+        ================================================= */}
+
+        <div className="reviews-carousel reveal">
+
+          {/* PREVIOUS BUTTON */}
+
+          <button
+            type="button"
+            className="review-arrow review-arrow-left"
+            onClick={previousReview}
+            aria-label="Previous review"
+          >
+            <ChevronLeft size={22} />
+          </button>
+
+          {/* REVIEW CARD */}
+
+          <div className="review-card-wrapper">
+            <div className="review-card reveal">
+
+              {/* =================================================
+                  VIDEO REVIEW
+              ================================================= */}
+
+              {review.type === 'video' ? (
+                <div className="review-video-container">
+
+                  <video
+                    className="review-video"
+                    src={review.videoUrl}
+                    controls
+                    playsInline
+                    preload="metadata"
+                  />
+
+                  <div className="video-label">
+                    <Play size={15} />
+                    <span>Video Review</span>
                   </div>
 
-                  <div className="review-rating">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        size={16}
-                        fill={star <= Number(review.rating || 5) ? 'currentColor' : 'none'}
-                      />
-                    ))}
-                  </div>
                 </div>
-              </div>
-            </div>
+              ) : (
 
-            <button
-              className="review-arrow review-arrow-right"
-              onClick={nextReview}
-              aria-label="Next review"
-            >
-              <ChevronRight size={22} />
-            </button>
+                /* =================================================
+                   WRITTEN REVIEW
+                ================================================= */
+
+                <div className="written-review">
+
+                  <div className="quote-mark">
+                    “
+                  </div>
+
+                  <p className="review-text">
+                    {review.review}
+                  </p>
+
+                </div>
+              )}
+
+              {/* =================================================
+                  REVIEW INFORMATION
+              ================================================= */}
+
+              <div className="review-info">
+
+                <div className="review-person">
+
+                  <div className="review-avatar">
+                    {review.name
+                      ?.charAt(0)
+                      ?.toUpperCase() || 'C'}
+                  </div>
+
+                  <div>
+                    <h3>
+                      {review.name || 'Customer'}
+                    </h3>
+
+                    <p>
+                      {review.destination || 'Tour'}
+                    </p>
+                  </div>
+
+                </div>
+
+                {/* RATING */}
+
+                <div className="review-rating">
+
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      size={16}
+                      fill={
+                        star <= Number(review.rating || 5)
+                          ? 'currentColor'
+                          : 'none'
+                      }
+                    />
+                  ))}
+
+                </div>
+
+              </div>
+
+            </div>
           </div>
 
+          {/* NEXT BUTTON */}
+
+          <button
+            type="button"
+            className="review-arrow review-arrow-right"
+            onClick={nextReview}
+            aria-label="Next review"
+          >
+            <ChevronRight size={22} />
+          </button>
+
+        </div>
+
+        {/* =================================================
+            CAROUSEL DOTS
+        ================================================= */}
+
+        {reviews.length > 1 && (
           <div className="review-dots">
+
             {reviews.map((item, index) => (
               <button
+                type="button"
                 key={item._id || index}
-                className={index === current ? 'review-dot active' : 'review-dot'}
-                onClick={() => setCurrent(index)}
+                className={
+                  index === current
+                    ? 'review-dot active'
+                    : 'review-dot'
+                }
+                onClick={() => goToReview(index)}
                 aria-label={`Go to review ${index + 1}`}
               />
             ))}
+
           </div>
+        )}
 
-          <div className="review-actions">
+        {/* =================================================
+            ACTION BUTTON
+        ================================================= */}
 
-            <button
-              className="instagram-review-button"
-              onClick={() => window.open(INSTAGRAM_HIGHLIGHTS_URL, '_blank', 'noopener,noreferrer')}
-            >
-              <ChartAreaIcon size={18} /> View Instagram Reviews
-            </button>
+        <div className="review-actions">
+
+          <button
+            type="button"
+            className="instagram-review-button"
+            onClick={() =>
+              window.open(
+                INSTAGRAM_HIGHLIGHTS_URL,
+                '_blank',
+                'noopener,noreferrer'
+              )
+            }
+          >
+  
+
+            <span>
+              View Instagram Reviews
+            </span>
+
+          </button>
+
+        </div>
+
+        {/* =================================================
+            OPTIONAL BACKEND STATUS
+            Does NOT hide the review section
+        ================================================= */}
+
+        {loading && (
+          <div
+            style={{
+              textAlign: 'center',
+              marginTop: '12px',
+              fontSize: '12px',
+              color: '#94a3b8',
+            }}
+          >
+            Loading latest reviews...
           </div>
-        </div>
-      </section>
+        )}
 
-      {/* Conditionally rendered form section below the carousel */}
-      {showWriteReview && (
-        <div ref={formRef}>
-          <WriteReviewSection onReviewSubmitted={handleReviewSubmitted} />
-        </div>
-      )}
-    </>
+      </div>
+    </section>
   );
 }
