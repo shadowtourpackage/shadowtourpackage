@@ -19,7 +19,6 @@ export default function DestinationsSection({
           </h3>
         </div>
 
-        {/* Opens separate Destinations page */}
         <button
           className="text-button heartbeat"
           onClick={() => navigateTo('destinations')}
@@ -38,30 +37,33 @@ export default function DestinationsSection({
               backgroundImage: `
                 linear-gradient(
                   0deg,
-                  rgba(0,12,28,.9),
-                  transparent 70%
+                  rgba(0,12,28,0.92) 0%,
+                  rgba(0,12,28,0.5) 50%,
+                  transparent 75%
                 ),
                 url('${d.image}')
               `,
             }}
           >
-            <div>
-              <p>{d.days}</p>
+            {/* Bottom Content Area */}
+            <div className="card-details">
+              {d.days && <p className="card-days">{d.days}</p>}
 
-              <h4>{d.name}</h4>
+              <h4 className="card-title">{d.name}</h4>
 
-              <span>
-                <MapPin size={15} />
+              <span className="card-location">
+                <MapPin size={14} />
                 {d.state}
               </span>
-            </div>
 
-            <Button
-              className="destination-book-btn heartbeat"
-              onClick={() => scroll('contact')}
-            >
-              ENQUIRY
-            </Button>
+              {/* Placed underneath location - full width & slim height */}
+              <Button
+                className="destination-book-btn heartbeat"
+                onClick={() => scroll('contact')}
+              >
+                <span style={{ marginTop: '10px' }}>ENQUIRY</span>
+              </Button>
+            </div>
           </article>
         ))}
       </div>

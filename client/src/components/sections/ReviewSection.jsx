@@ -11,7 +11,7 @@ import WriteReviewSection from './WriteReviewSection';
 import '../../styles/ReviewSection.css';
 
 const INSTAGRAM_HIGHLIGHTS_URL =
-  'https://www.instagram.com/stories/highlights/YOUR-HIGHLIGHT-ID/';
+  'https://www.instagram.com/s/aGlnaGxpZ2h0OjE4MDUzMzQwMDQ0NDQxMjQ0?story_media_id=3820831953520844477_78515209510&stkn=bTB0cXI0a3k0dTh5';
 
 const API_BASE =
   import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -213,9 +213,6 @@ export default function ReviewSection() {
           </div>
 
           <div className="review-actions">
-            <button className="write-review-button" onClick={handleWriteReviewClick}>
-              <PenLine size={18} /> {showWriteReview ? 'Hide Form' : 'Write a Review'}
-            </button>
 
             <button
               className="instagram-review-button"

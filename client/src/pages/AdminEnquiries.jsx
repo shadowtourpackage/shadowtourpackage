@@ -3,7 +3,7 @@ import { ArrowLeft, Lock, RefreshCw, Calendar, Phone, Mail, Users, MapPin, Check
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-export default function AdminEnquiries() {
+export default function AdminEnquiries({ navigateTo }) {
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => sessionStorage.getItem('admin_logged_in') === 'true'
   );
@@ -41,7 +41,6 @@ export default function AdminEnquiries() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // Default credentials: admin / shadow123
     if (username === 'admin' && password === 'shadow123') {
       sessionStorage.setItem('admin_logged_in', 'true');
       setIsAuthenticated(true);
@@ -56,6 +55,15 @@ export default function AdminEnquiries() {
     setIsAuthenticated(false);
   };
 
+  const handleReturnHome = (e) => {
+    e.preventDefault();
+    if (navigateTo) {
+      navigateTo('home');
+    } else {
+      window.location.href = '/';
+    }
+  };
+
   // Group entries by Day & Date (e.g., "Sunday, 1 Feb 2026")
   const groupedEnquiries = enquiries.reduce((acc, item) => {
     const rawDate = item.createdAt ? new Date(item.createdAt) : new Date();
@@ -63,7 +71,7 @@ export default function AdminEnquiries() {
       weekday: 'long',
       day: 'numeric',
       month: 'short',
-      year: 'numeric'
+      year: 'numeric',
     });
 
     if (!acc[dateLabel]) {
@@ -78,7 +86,7 @@ export default function AdminEnquiries() {
     return (
       <div style={styles.authContainer}>
         {/* Top Centered Logo Redirects to Website */}
-        <a href="/" style={styles.logoAnchor} title="Back to Shadow Tours">
+        <a href="/" onClick={handleReturnHome} style={styles.logoAnchor} title="Back to Shadow Tours">
           <img src="/images/logo.png" alt="Shadow Tour Packages" style={styles.loginLogo} />
         </a>
 
@@ -119,7 +127,7 @@ export default function AdminEnquiries() {
             </button>
           </form>
 
-          <a href="/" style={styles.returnLink}>
+          <a href="/" onClick={handleReturnHome} style={styles.returnLink}>
             <ArrowLeft size={15} /> Return to Shadow Tours Website
           </a>
         </div>
@@ -130,17 +138,15 @@ export default function AdminEnquiries() {
   // 2. DASHBOARD VIEW
   return (
     <div style={styles.pageWrap}>
-      {/* Top Header with Centered Logo */}
       <header style={styles.header}>
         <div style={styles.headerInner}>
           <div style={{ width: '120px' }}>
-            <a href="/" style={styles.backButton}>
+            <a href="/" onClick={handleReturnHome} style={styles.backButton}>
               <ArrowLeft size={16} /> Home
             </a>
           </div>
 
-          {/* Centered Logo Redirecting to Main Site */}
-          <a href="/" title="Go to Home" style={styles.centerLogoLink}>
+          <a href="/" onClick={handleReturnHome} title="Go to Home" style={styles.centerLogoLink}>
             <img src="/images/logo.png" alt="Shadow Tour Packages" style={styles.dashLogo} />
           </a>
 
@@ -155,7 +161,6 @@ export default function AdminEnquiries() {
         </div>
       </header>
 
-      {/* Main Table Area */}
       <main style={styles.main}>
         <div style={styles.titleRow}>
           <div>
@@ -175,7 +180,6 @@ export default function AdminEnquiries() {
         ) : (
           Object.entries(groupedEnquiries).map(([dateStr, items]) => (
             <div key={dateStr} style={styles.dateBlock}>
-              {/* Group Header */}
               <div style={styles.groupHeader}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Calendar size={18} color="#2b6cb0" />
@@ -186,7 +190,6 @@ export default function AdminEnquiries() {
                 </span>
               </div>
 
-              {/* Data Table */}
               <div style={styles.tableCard}>
                 <table style={styles.table}>
                   <thead>

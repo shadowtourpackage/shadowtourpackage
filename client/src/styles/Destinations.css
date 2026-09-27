@@ -793,3 +793,48 @@
   }
 
 }
+/* =====================================================
+   MOBILE-ONLY: FULL-WIDTH SLIM ENQUIRY UNDER LOCATION
+===================================================== */
+@media (max-width: 768px) {
+  /* Ensure the card stacks content vertically at the bottom */
+  .dest .cards .card {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-end !important;
+    padding: 0.9rem !important;
+  }
+
+  /* Make sure the text container takes full width */
+  .dest .cards .card > div {
+    width: 100% !important;
+  }
+
+  /* Space out the location line before the button */
+  .dest .cards .card span {
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 0.6rem !important;
+  }
+
+  /* Full card length width, slim height button below location */
+  .dest .cards .card .destination-book-btn {
+    position: static !important; /* Removes right-side floating */
+    width: 100% !important;     /* Full card length */
+    height: 32px !important;    /* Slim / less height */
+    min-height: unset !important;
+    margin: 0 !important;
+    padding: 0 0.75rem !important;
+    border-radius: 8px !important;
+    
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.35rem !important;
+    
+    font-size: 0.76rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.05em !important;
+    box-sizing: border-box !important;
+  }
+}

@@ -14,6 +14,7 @@ import Fleet from './pages/Fleet.jsx';
 import Gallery from './pages/Gallery.jsx';
 import Destinations from './pages/Destinations.jsx';
 import WriteReviewPage from './pages/WriteReview.jsx';
+import AdminEnquiries from './pages/AdminEnquiries.jsx';
 
 import { fallbackDestinations } from './data/destinations.js';
 
@@ -56,7 +57,8 @@ export default function App() {
   ===================================================== */
 
   const [page, setPage] = useState(() => {
-    const path = window.location.pathname;
+    // Normalize path to handle optional trailing slashes
+    const path = window.location.pathname.replace(/\/+$/, '') || '/';
 
     if (path === '/fleet') {
       return 'fleet';
@@ -73,6 +75,11 @@ export default function App() {
     /* Private Review Page */
     if (path === '/write-review') {
       return 'write-review';
+    }
+
+    /* Admin Enquiry Board */
+    if (path === '/enquiryboard') {
+      return 'enquiryboard';
     }
 
     return 'home';
@@ -103,7 +110,7 @@ export default function App() {
     fetch(`${API_BASE}/destinations`)
       .then((response) => response.json())
       .then((result) => {
-        if (result.data) {
+        if (result && result.data) {
           setDestinations(result.data);
         }
       })
@@ -119,7 +126,7 @@ export default function App() {
 
   useEffect(() => {
     const syncRoute = () => {
-      const path = window.location.pathname;
+      const path = window.location.pathname.replace(/\/+$/, '') || '/';
 
       if (path === '/fleet') {
         setPage('fleet');
@@ -129,6 +136,8 @@ export default function App() {
         setPage('destinations');
       } else if (path === '/write-review') {
         setPage('write-review');
+      } else if (path === '/enquiryboard') {
+        setPage('enquiryboard');
       } else {
         setPage('home');
       }
@@ -198,7 +207,7 @@ export default function App() {
       return;
     }
 
-    if (page === 'write-review') {
+    if (page === 'write-review' || page === 'enquiryboard') {
       setActive('');
       return;
     }
@@ -253,7 +262,8 @@ export default function App() {
       id === 'fleet' ||
       id === 'gallery' ||
       id === 'destinations' ||
-      id === 'write-review'
+      id === 'write-review' ||
+      id === 'enquiryboard'
     ) {
       window.history.pushState({}, '', `/${id}`);
       setPage(id);
@@ -297,6 +307,19 @@ export default function App() {
     return (
       <main>
         <WriteReviewPage navigateTo={navigateTo} />
+      </main>
+    );
+  }
+
+
+  /* =====================================================
+     STANDALONE ADMIN ENQUIRY DASHBOARD VIEW
+  ===================================================== */
+
+  if (page === 'enquiryboard') {
+    return (
+      <main>
+        <AdminEnquiries navigateTo={navigateTo} />
       </main>
     );
   }
