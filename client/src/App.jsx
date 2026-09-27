@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 
 import Header from './components/layout/Header.jsx';
@@ -8,21 +7,31 @@ import Hero from './components/sections/Hero.jsx';
 import About from './components/sections/About.jsx';
 import DestinationsSection from './components/sections/DestinationsSection.jsx';
 import FleetSnippet from './components/sections/FleetSnippet.jsx';
+import ReviewSection from './components/sections/ReviewSection.jsx';
 import ContactSection from './components/sections/ContactSection.jsx';
 
 import Fleet from './pages/Fleet.jsx';
 import Gallery from './pages/Gallery.jsx';
 import Destinations from './pages/Destinations.jsx';
+import WriteReviewPage from './pages/WriteReview.jsx';
 
 import { fallbackDestinations } from './data/destinations.js';
 
 import './styles/index.css';
 
 
+/* =====================================================
+   API
+===================================================== */
+
 const API_BASE =
   import.meta.env.VITE_API_URL ||
   'http://localhost:5000/api';
 
+
+/* =====================================================
+   SMOOTH SCROLL
+===================================================== */
 
 const scroll = (id) => {
   document
@@ -33,17 +42,20 @@ const scroll = (id) => {
 };
 
 
+/* =====================================================
+   APP
+===================================================== */
+
 export default function App() {
 
   const [menu, setMenu] = useState(false);
 
 
-  /* =========================
+  /* =====================================================
      CURRENT PAGE
-  ========================= */
+  ===================================================== */
 
   const [page, setPage] = useState(() => {
-
     const path = window.location.pathname;
 
     if (path === '/fleet') {
@@ -58,389 +70,244 @@ export default function App() {
       return 'destinations';
     }
 
+    /* Private Review Page */
+    if (path === '/write-review') {
+      return 'write-review';
+    }
+
     return 'home';
   });
 
+
+  /* =====================================================
+     DESTINATIONS
+  ===================================================== */
 
   const [destinations, setDestinations] =
     useState(fallbackDestinations);
 
 
+  /* =====================================================
+     ACTIVE NAVIGATION
+  ===================================================== */
+
   const [active, setActive] =
     useState('Home');
 
 
-  /* =========================
+  /* =====================================================
      LOAD DESTINATIONS
-  ========================= */
+  ===================================================== */
 
   useEffect(() => {
-
     fetch(`${API_BASE}/destinations`)
-      .then((r) => r.json())
-      .then((x) => {
-
-        if (x.data) {
-          setDestinations(x.data);
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.data) {
+          setDestinations(result.data);
         }
-
       })
-      .catch(() => { });
-
+      .catch(() => {
+        // Keep fallback destinations
+      });
   }, []);
 
 
-  /* =========================
-     HANDLE BROWSER BACK/FORWARD
-  ========================= */
+  /* =====================================================
+     BROWSER BACK / FORWARD
+  ===================================================== */
 
   useEffect(() => {
-
     const syncRoute = () => {
-
       const path = window.location.pathname;
 
       if (path === '/fleet') {
-
         setPage('fleet');
-
       } else if (path === '/gallery') {
-
         setPage('gallery');
-
       } else if (path === '/destinations') {
-
         setPage('destinations');
-
+      } else if (path === '/write-review') {
+        setPage('write-review');
       } else {
-
         setPage('home');
-
       }
-
     };
 
-
-    window.addEventListener(
-      'popstate',
-      syncRoute
-    );
-
+    window.addEventListener('popstate', syncRoute);
 
     return () => {
-
-      window.removeEventListener(
-        'popstate',
-        syncRoute
-      );
-
+      window.removeEventListener('popstate', syncRoute);
     };
-
   }, []);
 
 
-  /* =========================
+  /* =====================================================
      REVEAL ANIMATION
-  ========================= */
+  ===================================================== */
 
   useEffect(() => {
-
     const timer = setTimeout(() => {
-
       const revealElements =
         document.querySelectorAll('.reveal');
 
-
-      const observer =
-        new IntersectionObserver(
-
-          (entries) => {
-
-            entries.forEach((entry) => {
-
-              if (entry.isIntersecting) {
-
-                entry.target.classList.add('show');
-
-                observer.unobserve(
-                  entry.target
-                );
-
-              }
-
-            });
-
-          },
-
-          {
-            threshold: 0.1,
-          }
-
-        );
-
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('show');
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.1 }
+      );
 
       revealElements.forEach((element) => {
-
         observer.observe(element);
-
       });
 
-
-      return () => observer.disconnect();
-
+      return () => {
+        observer.disconnect();
+      };
     }, 50);
 
-
-    return () => clearTimeout(timer);
-
+    return () => {
+      clearTimeout(timer);
+    };
   }, [page]);
 
 
-  /* =========================
-     ACTIVE NAVIGATION
-  ========================= */
+  /* =====================================================
+     ACTIVE NAVIGATION (ON SCROLL)
+  ===================================================== */
 
   useEffect(() => {
-
-    /* Separate pages */
-
     if (page === 'fleet') {
-
       setActive('Our Fleet');
-
       return;
-
     }
-
 
     if (page === 'gallery') {
-
       setActive('Gallery');
-
       return;
-
     }
-
 
     if (page === 'destinations') {
-
       setActive('Destinations');
-
       return;
-
     }
 
+    if (page === 'write-review') {
+      setActive('');
+      return;
+    }
 
     /* Home page sections */
-
     const sections = [
-
-      {
-        id: 'home',
-        label: 'Home',
-      },
-
-      {
-        id: 'about',
-        label: 'About',
-      },
-
-      {
-        id: 'destinations',
-        label: 'Destinations',
-      },
-
-      {
-        id: 'contact',
-        label: 'Contact',
-      },
-
+      { id: 'home', label: 'Home' },
+      { id: 'about', label: 'About' },
+      { id: 'destinations', label: 'Destinations' },
+      { id: 'reviews', label: 'Reviews' },
+      { id: 'contact', label: 'Contact' },
     ];
 
-
     const onScroll = () => {
-
       const headerOffset = 100;
-
       let current = 'Home';
 
+      for (const section of sections) {
+        const element = document.getElementById(section.id);
 
-      for (const s of sections) {
+        if (!element) continue;
 
-        const el =
-          document.getElementById(s.id);
+        const top = element.getBoundingClientRect().top;
 
-
-        if (!el) continue;
-
-
-        const top =
-          el.getBoundingClientRect().top;
-
-
-        if (
-          top - headerOffset <= 0
-        ) {
-
-          current = s.label;
-
+        if (top - headerOffset <= 0) {
+          current = section.label;
         }
-
       }
 
-
       setActive(current);
-
     };
-
 
     onScroll();
 
-
-    window.addEventListener(
-      'scroll',
-      onScroll,
-      {
-        passive: true,
-      }
-    );
-
+    window.addEventListener('scroll', onScroll, { passive: true });
 
     return () => {
-
-      window.removeEventListener(
-        'scroll',
-        onScroll
-      );
-
+      window.removeEventListener('scroll', onScroll);
     };
-
   }, [page]);
 
 
-  /* =========================
+  /* =====================================================
      NAVIGATION
-  ========================= */
+  ===================================================== */
 
   function navigateTo(id) {
-
     setMenu(false);
 
-
-    /* =====================
-       SEPARATE PAGES
-    ===================== */
-
+    /* Separate Pages */
     if (
       id === 'fleet' ||
       id === 'gallery' ||
-      id === 'destinations'
+      id === 'destinations' ||
+      id === 'write-review'
     ) {
-
-      window.history.pushState(
-        {},
-        '',
-        `/${id}`
-      );
-
-
+      window.history.pushState({}, '', `/${id}`);
       setPage(id);
-
-
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      });
-
-
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
-
     }
 
-
-    /* =====================
-       HOME
-    ===================== */
-
+    /* Home */
     if (id === 'home') {
-
       if (page !== 'home') {
-
-        window.history.pushState(
-          {},
-          '',
-          '/'
-        );
-
-
+        window.history.pushState({}, '', '/');
         setPage('home');
-
-
-        window.scrollTo({
-          top: 0,
-          behavior: 'smooth',
-        });
-
-      } else {
-
-        window.scrollTo({
-          top: 0,
-          behavior: 'smooth',
-        });
-
       }
-
-
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
-
     }
 
-
-    /* =====================
-       CONTACT / ABOUT /
-       HOME SECTIONS
-    ===================== */
-
+    /* Home Sections */
     if (page !== 'home') {
-
-      window.history.pushState(
-        {},
-        '',
-        '/'
-      );
-
-
+      window.history.pushState({}, '', '/');
       setPage('home');
 
-
       requestAnimationFrame(() => {
-
         setTimeout(() => {
-
           scroll(id);
-
         }, 50);
-
       });
 
-
       return;
-
     }
 
-
     scroll(id);
-
   }
 
 
-  /* =========================
-     RENDER
-  ========================= */
+  /* =====================================================
+     STANDALONE PRIVATE REVIEW PAGE VIEW
+  ===================================================== */
+
+  if (page === 'write-review') {
+    return (
+      <main>
+        <WriteReviewPage navigateTo={navigateTo} />
+      </main>
+    );
+  }
+
+
+  /* =====================================================
+     STANDARD SITE RENDER
+  ===================================================== */
 
   return (
     <>
-
       <Header
         menu={menu}
         setMenu={setMenu}
@@ -448,88 +315,30 @@ export default function App() {
         navigateTo={navigateTo}
       />
 
-
       <main>
-
-        {/* =====================
-            FLEET PAGE
-        ===================== */}
-
         {page === 'fleet' ? (
-
           <Fleet />
-
-        )
-
-
-          /* =====================
-             GALLERY PAGE
-          ===================== */
-
-          : page === 'gallery' ? (
-
-            <Gallery />
-
-          )
-
-
-            /* =====================
-               DESTINATIONS PAGE
-            ===================== */
-
-            : page === 'destinations' ? (
-
-              <Destinations
-                navigateTo={navigateTo}
-              />
-
-            )
-
-
-              /* =====================
-                 HOME PAGE
-              ===================== */
-
-              : (
-
-                <>
-
-                  <Hero
-                    navigateTo={navigateTo}
-                    scroll={scroll}
-                  />
-
-
-                  <About
-                    navigateTo={navigateTo}
-                  />
-
-
-                  <DestinationsSection
-                    destinations={destinations}
-                    scroll={scroll}
-                    navigateTo={navigateTo}
-                  />
-
-
-                  <FleetSnippet
-                    navigateTo={navigateTo}
-                  />
-
-
-                  <ContactSection />
-
-                </>
-
-              )}
-
+        ) : page === 'gallery' ? (
+          <Gallery />
+        ) : page === 'destinations' ? (
+          <Destinations navigateTo={navigateTo} />
+        ) : (
+          <>
+            <Hero navigateTo={navigateTo} scroll={scroll} />
+            <About navigateTo={navigateTo} />
+            <DestinationsSection
+              destinations={destinations}
+              scroll={scroll}
+              navigateTo={navigateTo}
+            />
+            <FleetSnippet navigateTo={navigateTo} />
+            <ReviewSection navigateTo={navigateTo} />
+            <ContactSection />
+          </>
+        )}
       </main>
 
-
-      <Footer
-        navigateTo={navigateTo}
-      />
-
+      <Footer navigateTo={navigateTo} />
     </>
   );
 }

@@ -3,6 +3,7 @@ export const nav = [
   'Destinations',
   'Our Fleet',
   'Gallery',
+  'Reviews',
   'About',
   'Contact',
 ];
@@ -14,6 +15,7 @@ export const sectionFor = (name) => {
     Destinations: 'destinations',
     'Our Fleet': 'fleet',
     Gallery: 'gallery',
+    Reviews: 'reviews',
     About: 'about',
     Contact: 'contact',
   };

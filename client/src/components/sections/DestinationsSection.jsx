@@ -8,9 +8,7 @@ export default function DestinationsSection({
 }) {
   return (
     <section id="destinations" className="dest section dark">
-
       <div className="section-head">
-
         <div>
           <p className="eyebrow reveal">
             POPULAR DESTINATIONS
@@ -29,13 +27,10 @@ export default function DestinationsSection({
           View all destinations
           <ArrowRight size={17} />
         </button>
-
       </div>
 
       <div className="cards reveal">
-
         {destinations.map((d) => (
-
           <article
             className="card"
             key={d.id}
@@ -50,7 +45,6 @@ export default function DestinationsSection({
               `,
             }}
           >
-
             <div>
               <p>{d.days}</p>
 
@@ -68,13 +62,9 @@ export default function DestinationsSection({
             >
               ENQUIRY
             </Button>
-
           </article>
-
         ))}
-
       </div>
-
     </section>
   );
 }
