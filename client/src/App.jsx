@@ -78,8 +78,8 @@ export default function App() {
     }
 
     /* Admin Enquiry Board */
-    if (path === '/enquiryboard') {
-      return 'enquiryboard';
+    if (path === '/enquiry-board') {
+      return 'enquiry-board';
     }
 
     return 'home';
@@ -136,8 +136,8 @@ export default function App() {
         setPage('destinations');
       } else if (path === '/write-review') {
         setPage('write-review');
-      } else if (path === '/enquiryboard') {
-        setPage('enquiryboard');
+      } else if (path === '/enquiry-board') {
+        setPage('enquiry-board');
       } else {
         setPage('home');
       }
@@ -207,7 +207,7 @@ export default function App() {
       return;
     }
 
-    if (page === 'write-review' || page === 'enquiryboard') {
+    if (page === 'write-review' || page === 'enquiry-board') {
       setActive('');
       return;
     }
@@ -220,7 +220,7 @@ export default function App() {
       { id: 'reviews', label: 'Reviews' },
       { id: 'contact', label: 'Contact' },
     ];
-
+ 
     const onScroll = () => {
       const headerOffset = 100;
       let current = 'Home';
@@ -263,7 +263,7 @@ export default function App() {
       id === 'gallery' ||
       id === 'destinations' ||
       id === 'write-review' ||
-      id === 'enquiryboard'
+      id === 'enquiry-board'
     ) {
       window.history.pushState({}, '', `/${id}`);
       setPage(id);
@@ -316,7 +316,7 @@ export default function App() {
      STANDALONE ADMIN ENQUIRY DASHBOARD VIEW
   ===================================================== */
 
-  if (page === 'enquiryboard') {
+  if (page === 'enquiry-board') {
     return (
       <main>
         <AdminEnquiries navigateTo={navigateTo} />

@@ -1,33 +1,38 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Lock, RefreshCw, Calendar, Phone, Mail, Users, MapPin, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Lock, RefreshCw, Calendar, Phone, Mail, Users, MapPin, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/+$/, '');
 
 export default function AdminEnquiries({ navigateTo }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => sessionStorage.getItem('admin_logged_in') === 'true'
-  );
+  // 1. In-memory state only: ALWAYS defaults to false on every page visit or reload
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState('');
 
+  // 2. Fetch records only after credentials pass in this active session
   const fetchEnquiries = async () => {
     setLoading(true);
     setFetchError('');
     try {
       const res = await fetch(`${API_BASE}/bookings`);
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`);
+      }
       const result = await res.json();
-      if (res.ok && result.ok) {
+      if (result.ok) {
         setEnquiries(result.data || []);
       } else {
         setFetchError(result.message || 'Failed to fetch enquiries.');
       }
-    } catch {
-      setFetchError('Could not reach the server. Make sure your backend is running on port 5000.');
+    } catch (err) {
+      console.error('[AdminEnquiries Error]:', err);
+      setFetchError('Could not reach the server. Make sure your backend is running.');
     } finally {
       setLoading(false);
     }
@@ -39,20 +44,44 @@ export default function AdminEnquiries({ navigateTo }) {
     }
   }, [isAuthenticated]);
 
-  const handleLogin = (e) => {
+  /* =====================================================
+     LOGIN (No storage save -> Resets on next page load)
+  ===================================================== */
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'shadow123') {
-      sessionStorage.setItem('admin_logged_in', 'true');
-      setIsAuthenticated(true);
-      setAuthError('');
-    } else {
-      setAuthError('Invalid username or password.');
+    setAuthError('');
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: username.trim(),
+          password: password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.ok) {
+        // Only set the state in current memory - never save to storage
+        setIsAuthenticated(true);
+        setAuthError('');
+      } else {
+        setAuthError(data.message || 'Invalid username or password.');
+      }
+    } catch {
+      setAuthError('Unable to connect to backend service.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem('admin_logged_in');
     setIsAuthenticated(false);
+    setUsername('');
+    setPassword('');
   };
 
   const handleReturnHome = (e) => {
@@ -64,7 +93,6 @@ export default function AdminEnquiries({ navigateTo }) {
     }
   };
 
-  // Group entries by Day & Date (e.g., "Sunday, 1 Feb 2026")
   const groupedEnquiries = enquiries.reduce((acc, item) => {
     const rawDate = item.createdAt ? new Date(item.createdAt) : new Date();
     const dateLabel = rawDate.toLocaleDateString('en-GB', {
@@ -81,13 +109,19 @@ export default function AdminEnquiries({ navigateTo }) {
     return acc;
   }, {});
 
-  // 1. LOGIN VIEW
+  // =====================================================
+  // 1. ALWAYS SHOWS LOGIN FIRST ON ANY URL VISIT / REFRESH
+  // =====================================================
   if (!isAuthenticated) {
     return (
       <div style={styles.authContainer}>
-        {/* Top Centered Logo Redirects to Website */}
         <a href="/" onClick={handleReturnHome} style={styles.logoAnchor} title="Back to Shadow Tours">
-          <img src="/images/logo.png" alt="Shadow Tour Packages" style={styles.loginLogo} />
+          <img 
+            src="/images/logo.png" 
+            alt="Shadow Tour Packages" 
+            style={styles.loginLogo} 
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
         </a>
 
         <div style={styles.authCard}>
@@ -108,7 +142,9 @@ export default function AdminEnquiries({ navigateTo }) {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 style={styles.input}
-                placeholder="admin"
+                placeholder="Username"
+                disabled={isSubmitting}
+                autoComplete="off"
               />
             </label>
             <label style={styles.label}>
@@ -120,10 +156,25 @@ export default function AdminEnquiries({ navigateTo }) {
                 required
                 style={styles.input}
                 placeholder="••••••••"
+                disabled={isSubmitting}
               />
             </label>
-            <button type="submit" style={styles.submitBtn}>
-              Sign In
+            <button 
+              type="submit" 
+              style={{
+                ...styles.submitBtn, 
+                opacity: isSubmitting ? 0.7 : 1,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer'
+              }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <Loader2 size={16} className="spin" /> Verifying...
+                </span>
+              ) : (
+                'Sign In'
+              )}
             </button>
           </form>
 
@@ -135,7 +186,9 @@ export default function AdminEnquiries({ navigateTo }) {
     );
   }
 
-  // 2. DASHBOARD VIEW
+  // =====================================================
+  // 2. DASHBOARD VIEW (ACTIVE SESSION ONLY)
+  // =====================================================
   return (
     <div style={styles.pageWrap}>
       <header style={styles.header}>
@@ -147,7 +200,12 @@ export default function AdminEnquiries({ navigateTo }) {
           </div>
 
           <a href="/" onClick={handleReturnHome} title="Go to Home" style={styles.centerLogoLink}>
-            <img src="/images/logo.png" alt="Shadow Tour Packages" style={styles.dashLogo} />
+            <img 
+              src="/images/logo.png" 
+              alt="Shadow Tour Packages" 
+              style={styles.dashLogo} 
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
           </a>
 
           <div style={styles.headerRight}>
@@ -320,7 +378,10 @@ const styles = {
     borderRadius: '6px',
     fontWeight: 600,
     cursor: 'pointer',
-    marginTop: '6px'
+    marginTop: '6px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   returnLink: {
     display: 'flex',
