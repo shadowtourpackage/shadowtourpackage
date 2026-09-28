@@ -4,43 +4,126 @@ import {
   ChevronLeft,
   ChevronRight,
   Play,
+  Pause,
 } from 'lucide-react';
 
 import '../../styles/ReviewSection.css';
-import  reviewGallery  from '../../data/reviewGallery.js';
-
-const INSTAGRAM_HIGHLIGHTS_URL =
-  'https://www.instagram.com/s/aGlnaGxpZ2h0OjE4MDUzMzQwMDQ0NDQxMjQ0?story_media_id=3820831953520844477_78515209510&stkn=bTB0cXI0a3k0dTh5';
+import reviewGallery from '../../data/reviewGallery.js';
 
 const API_BASE =
   import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+// Helper to extract 11-char ID from YouTube URLs, Shorts URLs, or raw IDs
+function getYouTubeId(urlOrId) {
+  if (!urlOrId) return '';
+  const match = String(urlOrId).match(
+    /(?:shorts\/|youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)?([\w-]{11})/
+  );
+  return match ? match[1] : urlOrId;
+}
+
 /* =====================================================
-   COMPONENT
+   CUSTOM YOUTUBE PLAYER COMPONENT
+   Hides all YouTube controls except custom Play/Pause
 ===================================================== */
+function YouTubePlayer({ videoId, title }) {
+  const containerRef = useRef(null);
+  const playerRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
+  useEffect(() => {
+    // 1. Ensure YouTube Iframe API script is loaded
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.body.appendChild(tag);
+    }
+
+    let playerInstance = null;
+
+    const initPlayer = () => {
+      if (!containerRef.current || !window.YT || !window.YT.Player) return;
+
+      playerInstance = new window.YT.Player(containerRef.current, {
+        videoId: videoId,
+        playerVars: {
+          controls: 0,        // Removes progress bar, volume, full screen, cog
+          modestbranding: 1,  // Reduces YouTube branding
+          rel: 0,             // Prevents related videos at the end
+          showinfo: 0,
+          iv_load_policy: 3,  // Disables pop-up annotations
+          disablekb: 1,       // Disables keyboard shortcuts
+          fs: 0,              // Disables full screen button
+        },
+        events: {
+          onReady: () => setIsReady(true),
+          onStateChange: (event) => {
+            // 1 = Playing, 2 = Paused, 0 = Ended
+            if (event.data === window.YT.PlayerState.PLAYING) {
+              setIsPlaying(true);
+            } else {
+              setIsPlaying(false);
+            }
+          },
+        },
+      });
+
+      playerRef.current = playerInstance;
+    };
+
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+    } else {
+      window.onYouTubeIframeAPIReady = initPlayer;
+    }
+
+    return () => {
+      if (playerRef.current && playerRef.current.destroy) {
+        playerRef.current.destroy();
+      }
+    };
+  }, [videoId]);
+
+  const togglePlay = () => {
+    if (!playerRef.current || !isReady) return;
+    if (isPlaying) {
+      playerRef.current.pauseVideo();
+    } else {
+      playerRef.current.playVideo();
+    }
+  };
+
+  return (
+    <div className="custom-yt-container">
+      <div ref={containerRef} className="yt-frame" />
+
+      {/* Full-frame click overlay with Play / Pause button */}
+      <button
+        type="button"
+        className={`yt-play-toggle-overlay ${isPlaying ? 'is-playing' : ''}`}
+        onClick={togglePlay}
+        aria-label={isPlaying ? 'Pause video' : 'Play video'}
+      >
+        <span className="yt-control-btn">
+          {isPlaying ? <Pause size={28} /> : <Play size={28} className="translate-x" />}
+        </span>
+      </button>
+    </div>
+  );
+}
+
+/* =====================================================
+   MAIN COMPONENT
+===================================================== */
 export default function ReviewSection() {
-  /*
-   * Reviews contain:
-   *
-   * 1. Dynamic reviews from backend
-   * 2. 6 static video reviews from reviewGallery.js
-   *
-   * Static videos are always placed at the end.
-   */
-
   const [reviews, setReviews] = useState(reviewGallery);
-
   const [current, setCurrent] = useState(0);
-
   const [loading, setLoading] = useState(true);
 
-  const intervalRef = useRef(null);
-
   /* =====================================================
-     LOAD REVIEWS FROM BACKEND
+     LOAD DYNAMIC REVIEWS FROM API
   ===================================================== */
-
   const loadReviews = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE}/reviews`);
@@ -51,205 +134,113 @@ export default function ReviewSection() {
 
       const result = await response.json();
 
-      /*
-       * If backend contains dynamic reviews:
-       *
-       * Dynamic Reviews
-       * +
-       * 6 Static Video Reviews
-       */
-
-      if (
-        result &&
-        Array.isArray(result.data) &&
-        result.data.length > 0
-      ) {
-        setReviews([
-          ...result.data,
-          ...reviewGallery,
-        ]);
-
+      if (result && Array.isArray(result.data) && result.data.length > 0) {
+        setReviews([...result.data, ...reviewGallery]);
         setCurrent(0);
       } else {
-        /*
-         * Backend has no reviews.
-         *
-         * Show only the 6 static videos.
-         */
-
         setReviews(reviewGallery);
-
         setCurrent(0);
       }
     } catch (error) {
-      /*
-       * Backend unavailable.
-       *
-       * Show only the 6 static videos.
-       */
-
       console.error('Failed to load reviews:', error);
-
       setReviews(reviewGallery);
-
       setCurrent(0);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  /* =====================================================
-     INITIAL LOAD
-  ===================================================== */
-
   useEffect(() => {
     loadReviews();
   }, [loadReviews]);
 
   /* =====================================================
-     AUTO PLAY CAROUSEL
-     Changes review every 1.5 seconds
+     NAVIGATION HANDLERS (Manual Only)
   ===================================================== */
-
-  useEffect(() => {
-    if (reviews.length <= 1) {
-      return;
-    }
-
-    intervalRef.current = setInterval(() => {
-      setCurrent((prev) => {
-        return (prev + 1) % reviews.length;
-      });
-    }, 1500);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [reviews.length]);
-
-  /* =====================================================
-     RESET AUTO PLAY
-  ===================================================== */
-
-  const resetAutoPlay = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    if (reviews.length > 1) {
-      intervalRef.current = setInterval(() => {
-        setCurrent((prev) => {
-          return (prev + 1) % reviews.length;
-        });
-      }, 1500);
-    }
-  };
-
-  /* =====================================================
-     NEXT REVIEW
-  ===================================================== */
-
   const nextReview = () => {
-    setCurrent((prev) => {
-      return (prev + 1) % reviews.length;
-    });
-
-    resetAutoPlay();
+    setCurrent((prev) => (prev + 1) % reviews.length);
   };
-
-  /* =====================================================
-     PREVIOUS REVIEW
-  ===================================================== */
 
   const previousReview = () => {
-    setCurrent((prev) => {
-      return (prev - 1 + reviews.length) % reviews.length;
-    });
-
-    resetAutoPlay();
+    setCurrent((prev) => (prev - 1 + reviews.length) % reviews.length);
   };
-
-  /* =====================================================
-     GO TO SPECIFIC REVIEW
-  ===================================================== */
 
   const goToReview = (index) => {
     setCurrent(index);
-    resetAutoPlay();
   };
-
-  /* =====================================================
-     GET CURRENT REVIEW
-  ===================================================== */
 
   const review = reviews[current] || reviews[0];
 
-  /* =====================================================
-     SAFETY CHECK
-  ===================================================== */
+  if (!review) return null;
 
-  if (!review) {
-    return null;
-  }
+  // Determine layout format
+  const isShort =
+    review.isShort ||
+    review.type === 'short' ||
+    review.youtubeUrl?.includes('/shorts/') ||
+    review.youtubeId?.includes('/shorts/');
 
-  /* =====================================================
-     MAIN JSX
-  ===================================================== */
+  const isWritten = !review.type || review.type === 'written';
+
+  const cardLayoutClass = isShort
+    ? 'card-layout-short'
+    : isWritten
+    ? 'card-layout-square'
+    : 'card-layout-standard';
+
+  const ytId = getYouTubeId(review.youtubeId || review.youtubeUrl);
 
   return (
     <section id="reviews" className="reviews-section">
       <div className="reviews-container">
 
-        {/* =================================================
-            HEADING
-        ================================================= */}
-
+        {/* HEADING */}
         <div className="reviews-heading reveal">
           <span>CUSTOMER EXPERIENCES</span>
-
-          <h2 className="reveal">
-            What Our Travellers Say
-          </h2>
-
+          <h2 className="reveal">What Our Travellers Say</h2>
           <p className="reveal">
-            Real experiences from people who travelled with
-            Shadow Tour Packages.
+            Real experiences from people who travelled with Shadow Tour Packages.
           </p>
         </div>
 
-        {/* =================================================
-            CAROUSEL
-        ================================================= */}
+        {/* REVIEW VIEWER WITH ARROWS */}
+        <div className="reviews-viewer reveal">
 
-        <div className="reviews-carousel reveal">
+          {/* LEFT ARROW */}
+          {reviews.length > 1 && (
+            <button
+              type="button"
+              className="review-arrow review-arrow-left"
+              onClick={previousReview}
+              aria-label="Previous review"
+            >
+              <ChevronLeft size={22} />
+            </button>
+          )}
 
-          {/* PREVIOUS BUTTON */}
-
-          <button
-            type="button"
-            className="review-arrow review-arrow-left"
-            onClick={previousReview}
-            aria-label="Previous review"
-          >
-            <ChevronLeft size={22} />
-          </button>
-
-          {/* REVIEW CARD */}
-
-          <div className="review-card-wrapper">
+          {/* CARD WRAPPER */}
+          <div className={`review-card-wrapper ${cardLayoutClass}`}>
             <div className="review-card reveal">
 
-              {/* =================================================
-                  VIDEO REVIEW
-              ================================================= */}
+              {/* ========== YOUTUBE VIDEO / SHORTS ========== */}
+              {review.type === 'youtube' || review.type === 'short' || ytId ? (
+                <div className={`review-video-container ${isShort ? 'is-short' : ''}`}>
+                  <div className="youtube-embed-wrapper">
+                    <YouTubePlayer
+                      key={ytId || review._id}
+                      videoId={ytId}
+                      title={`${review.name || 'Customer'} - ${review.destination || 'Tour'}`}
+                    />
+                  </div>
 
-              {review.type === 'video' ? (
+                  <div className="video-label">
+                    <Play size={15} />
+                    <span>{isShort ? 'Short Review' : 'Video Review'}</span>
+                  </div>
+                </div>
+              ) : review.type === 'video' ? (
+                /* ========== NORMAL HTML5 VIDEO FILE ========== */
                 <div className="review-video-container">
-
                   <video
                     className="review-video"
                     src={review.videoUrl}
@@ -257,62 +248,32 @@ export default function ReviewSection() {
                     playsInline
                     preload="metadata"
                   />
-
                   <div className="video-label">
                     <Play size={15} />
                     <span>Video Review</span>
                   </div>
-
                 </div>
               ) : (
-
-                /* =================================================
-                   WRITTEN REVIEW
-                ================================================= */
-
+                /* ========== WRITTEN REVIEW ========== */
                 <div className="written-review">
-
-                  <div className="quote-mark">
-                    “
-                  </div>
-
-                  <p className="review-text">
-                    {review.review}
-                  </p>
-
+                  <div className="quote-mark">“</div>
+                  <p className="review-text">{review.review}</p>
                 </div>
               )}
 
-              {/* =================================================
-                  REVIEW INFORMATION
-              ================================================= */}
-
+              {/* CUSTOMER INFO + RATING */}
               <div className="review-info">
-
                 <div className="review-person">
-
                   <div className="review-avatar">
-                    {review.name
-                      ?.charAt(0)
-                      ?.toUpperCase() || 'C'}
+                    {review.name?.charAt(0)?.toUpperCase() || 'C'}
                   </div>
-
                   <div>
-                    <h3>
-                      {review.name || 'Customer'}
-                    </h3>
-
-                    <p>
-                      {review.destination || 'Tour'}
-                    </p>
+                    <h3>{review.name || 'Customer'}</h3>
+                    <p>{review.destination || 'Tour'}</p>
                   </div>
-
                 </div>
 
-                {/* RATING */}
-
                 <div className="review-rating">
-
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
                       key={star}
@@ -324,92 +285,53 @@ export default function ReviewSection() {
                       }
                     />
                   ))}
-
                 </div>
-
               </div>
 
             </div>
           </div>
 
-          {/* NEXT BUTTON */}
-
-          <button
-            type="button"
-            className="review-arrow review-arrow-right"
-            onClick={nextReview}
-            aria-label="Next review"
-          >
-            <ChevronRight size={22} />
-          </button>
+          {/* RIGHT ARROW */}
+          {reviews.length > 1 && (
+            <button
+              type="button"
+              className="review-arrow review-arrow-right"
+              onClick={nextReview}
+              aria-label="Next review"
+            >
+              <ChevronRight size={22} />
+            </button>
+          )}
 
         </div>
 
-        {/* =================================================
-            CAROUSEL DOTS
-        ================================================= */}
-
+        {/* PAGINATION DOTS */}
         {reviews.length > 1 && (
           <div className="review-dots">
-
             {reviews.map((item, index) => (
               <button
                 type="button"
                 key={item._id || index}
-                className={
-                  index === current
-                    ? 'review-dot active'
-                    : 'review-dot'
-                }
+                className={index === current ? 'review-dot active' : 'review-dot'}
                 onClick={() => goToReview(index)}
                 aria-label={`Go to review ${index + 1}`}
               />
             ))}
-
           </div>
         )}
-
-        {/* =================================================
-            ACTION BUTTON
-        ================================================= */}
-
-        <div className="review-actions">
-
-          <button
-            type="button"
-            className="instagram-review-button"
-            onClick={() =>
-              window.open(
-                INSTAGRAM_HIGHLIGHTS_URL,
-                '_blank',
-                'noopener,noreferrer'
-              )
-            }
-          >
-            <span>
-              View Instagram Reviews
-            </span>
-          </button>
-
-        </div>
-
-        {/* =================================================
-            OPTIONAL BACKEND STATUS
-        ================================================= */}
 
         {loading && (
           <div
             style={{
               textAlign: 'center',
-              marginTop: '12px',
-              fontSize: '12px',
+              marginTop: '16px',
+              fontSize: '13px',
               color: '#94a3b8',
             }}
           >
             Loading latest reviews...
           </div>
         )}
-
       </div>
     </section>
   );

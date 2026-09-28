@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Globe, Mail, MapPin, Phone, MessageCircle } from 'lucide-react';
-import { FaInstagram,FaWhatsapp } from "react-icons/fa";
+import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 import Button from '../common/Button.jsx';
 import Field from '../common/Field.jsx';
 import { team } from '../../data/team.js';
@@ -14,6 +14,10 @@ export default function ContactSection() {
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const phoneNumber = import.meta.env.VITE_WHATSAPP_NUMBER;
+    useEffect(() => {
+        // Silent wake-up ping for free-tier servers
+        fetch(`${API_BASE}/health`).catch(() => { });
+    }, []);
     useEffect(() => {
         const timer = setInterval(() => {
             setTeamIndex((prev) => (prev + 1) % team.length);
@@ -56,7 +60,7 @@ export default function ContactSection() {
                 setErrors(result.errors || { form: result.message || 'Validation error. Please check your fields.' });
             }
         } catch {
-            setErrors({ form: 'Unable to send your enquiry right now. Please check your connection or call us.' });
+            setErrors({ form: 'Try Again or Please check your connection or call us.' });
         } finally {
             setSubmitting(false);
         }

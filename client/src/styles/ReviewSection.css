@@ -1,10 +1,9 @@
 /* =====================================================
    REVIEWS SECTION
 ===================================================== */
-
 .reviews-section {
   position: relative;
-  padding: 22px 20px;
+  padding: 40px 20px;
   background: #f7f9fc;
   overflow: hidden;
 }
@@ -18,10 +17,9 @@
 /* =====================================================
    HEADING
 ===================================================== */
-
 .reviews-heading {
   text-align: center;
-  margin-bottom: 45px;
+  margin-bottom: 40px;
 }
 
 .reviews-heading span {
@@ -49,10 +47,9 @@
 }
 
 /* =====================================================
-   CAROUSEL
+   REVIEW VIEWER & SIDE ARROWS
 ===================================================== */
-
-.reviews-carousel {
+.reviews-viewer {
   position: relative;
   display: flex;
   align-items: center;
@@ -60,70 +57,152 @@
   gap: 20px;
 }
 
+/* Base card wrapper with transition when switching types */
 .review-card-wrapper {
-  width: min(100%, 700px);
+  width: 100%;
+  transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 1. Standard 16:9 Landscape Video: Wide */
+.review-card-wrapper.card-layout-standard {
+  max-width: 680px;
+}
+
+/* 2. Written Review: Proportional Square Card */
+.review-card-wrapper.card-layout-square {
+  max-width: 480px;
+}
+
+/* 3. YouTube Shorts: Vertical Portrait Card (9:16) */
+.review-card-wrapper.card-layout-short {
+  max-width: 330px;
 }
 
 .review-card {
   width: 100%;
-  min-height: 390px;
   overflow: hidden;
   border-radius: 22px;
   background: #ffffff;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.10);
-  transition: transform 0.3s ease;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
 /* =====================================================
-   WRITTEN REVIEW
+   SIDE ARROWS
 ===================================================== */
-
-.written-review {
-  position: relative;
+.review-arrow {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 285px;
-  padding: 55px 55px 40px;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #062b55;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  z-index: 5;
+}
+
+.review-arrow:hover {
+  transform: scale(1.1);
+  background-color: #f4c400;
+  color: #062b55;
+}
+
+.review-arrow:active {
+  transform: scale(0.95);
+}
+
+/* =====================================================
+   WRITTEN REVIEW (SQUARE FORMAT)
+===================================================== */
+.written-review {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 35px 35px;
   box-sizing: border-box;
+}
+
+.card-layout-square .written-review {
+  aspect-ratio: 1 / 1;
+  min-height: 380px;
 }
 
 .quote-mark {
   position: absolute;
-  top: 20px;
-  left: 30px;
+  top: 15px;
+  left: 25px;
   color: #f4c400;
   font-family: Georgia, serif;
-  font-size: 75px;
+  font-size: 70px;
   line-height: 1;
+  user-select: none;
 }
 
 .review-text {
   margin: 0;
-  max-width: 570px;
+  width: 100%;
+  max-width: 380px;
   color: #334155;
-  font-size: 20px;
-  line-height: 1.8;
+  font-size: 18px;
+  line-height: 1.7;
   text-align: center;
+  z-index: 1;
 }
 
 /* =====================================================
-   VIDEO REVIEW
+   VIDEO CONTAINERS & EMBEDS
 ===================================================== */
-
 .review-video-container {
   position: relative;
   width: 100%;
-  height: 285px;
   background: #071a2f;
   overflow: hidden;
+}
+
+/* Standard YouTube 16:9 Aspect Ratio */
+.youtube-embed-wrapper {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 */
+  height: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+/* Vertical YouTube Shorts 9:16 Aspect Ratio */
+.card-layout-short .youtube-embed-wrapper,
+.review-video-container.is-short .youtube-embed-wrapper {
+  padding-bottom: 177.78%; /* 9:16 portrait */
+}
+
+.youtube-embed-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 .review-video {
   display: block;
   width: 100%;
-  height: 100%;
+  height: 320px;
   object-fit: cover;
+}
+
+.card-layout-short .review-video {
+  height: auto;
+  aspect-ratio: 9 / 16;
 }
 
 .video-label {
@@ -139,25 +218,29 @@
   color: #ffffff;
   font-size: 12px;
   font-weight: 700;
+  z-index: 2;
+  backdrop-filter: blur(4px);
 }
 
 /* =====================================================
-   REVIEW INFO
+   REVIEW INFO / FOOTER
 ===================================================== */
-
 .review-info {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 22px 28px;
+  gap: 15px;
+  padding: 18px 24px;
+  background: #ffffff;
   border-top: 1px solid #edf0f4;
+  margin-top: auto;
 }
 
 .review-person {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .review-avatar {
@@ -165,19 +248,22 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 45px;
-  height: 45px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: #062b55;
   color: #ffffff;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
 }
 
 .review-person h3 {
-  margin: 0 0 3px;
+  margin: 0 0 2px;
   color: #062b55;
   font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .review-person p {
@@ -190,153 +276,66 @@
   display: flex;
   gap: 3px;
   color: #f4c400;
-}
-
-/* =====================================================
-   ARROWS
-===================================================== */
-
-.review-arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-  width: 46px;
-  height: 46px;
-  border: none;
-  border-radius: 50%;
-  background: #ffffff;
-  color: #062b55;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.10);
-  cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease;
 }
 
-.review-arrow:hover {
-  transform: scale(1.08);
-  background: #f4c400;
+/* Compact adjustments for Shorts cards footer */
+.card-layout-short .review-info {
+  padding: 14px 18px;
 }
 
-.review-arrow-left {
-  margin-right: 5px;
-}
-
-.review-arrow-right {
-  margin-left: 5px;
+.card-layout-short .review-avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 14px;
 }
 
 /* =====================================================
-   DOTS
+   DOTS / PAGINATION UNDER CARD
 ===================================================== */
-
 .review-dots {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 7px;
-  margin-top: 25px;
+  gap: 8px;
+  margin-top: 30px;
 }
 
 .review-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   padding: 0;
   border: none;
   border-radius: 50%;
   background: #cbd5e1;
   cursor: pointer;
-  transition: width 0.2s ease, background 0.2s ease;
+  transition: width 0.25s ease, background-color 0.25s ease, border-radius 0.25s ease;
+}
+
+.review-dot:hover {
+  background: #94a3b8;
 }
 
 .review-dot.active {
-  width: 25px;
-  border-radius: 10px;
-  background: #f4c400;
+  width: 26px;
+  border-radius: 12px;
+  background-color: #f4c400;
 }
 
 /* =====================================================
-   ACTION BUTTONS
+   MOBILE RESPONSIVENESS
 ===================================================== */
-
-.review-actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 35px;
-}
-
-.write-review-button,
-.instagram-review-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-width: 190px;
-  padding: 13px 20px;
-  border-radius: 9px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.write-review-button:hover,
-.instagram-review-button:hover {
-  transform: translateY(-2px);
-}
-
-.write-review-button {
-  border: none;
-  background: #f4c400;
-  color: #062b55;
-}
-
-.instagram-review-button {
-  border: 1px solid #062b55;
-  background: transparent;
-  color: #062b55;
-}
-
-/* =====================================================
-   LOADING
-===================================================== */
-
-.reviews-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
-  color: #64748b;
-  font-size: 15px;
-}
-
-/* =====================================================
-   MOBILE
-===================================================== */
-
 @media (max-width: 700px) {
   .reviews-section {
-    padding: 22px 15px;
+    padding: 24px 12px;
   }
 
   .reviews-heading {
-    margin-bottom: 30px;
+    margin-bottom: 25px;
   }
 
-  .reviews-carousel {
+  .reviews-viewer {
     gap: 8px;
-  }
-
-  .review-card-wrapper {
-    width: 100%;
-  }
-
-  .review-card {
-    min-height: 370px;
-    border-radius: 18px;
   }
 
   .review-arrow {
@@ -344,62 +343,88 @@
     height: 38px;
   }
 
-  .review-arrow-left,
-  .review-arrow-right {
-    margin: 0;
+  .review-card-wrapper.card-layout-standard,
+  .review-card-wrapper.card-layout-square {
+    max-width: 100%;
   }
 
-  .written-review {
-    min-height: 270px;
-    padding: 50px 30px 35px;
+  .review-card-wrapper.card-layout-short {
+    max-width: min(290px, 80vw);
+  }
+
+  .card-layout-square .written-review {
+    aspect-ratio: auto;
+    min-height: 260px;
+    padding: 40px 20px 25px;
   }
 
   .review-text {
-    font-size: 17px;
-    line-height: 1.7;
+    font-size: 16px;
   }
 
-  .review-video-container {
-    height: 270px;
-  }
-
-  .review-info {
-    padding: 18px;
-    align-items: flex-start;
-  }
-
-  .review-rating {
-    flex-shrink: 0;
-  }
-
-  .review-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .write-review-button,
-  .instagram-review-button {
-    width: 100%;
+  .review-dots {
+    margin-top: 20px;
   }
 }
+/* Container holding the video and custom controls */
+.custom-yt-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
 
-@media (max-width: 450px) {
-  .review-arrow {
-    width: 34px;
-    height: 34px;
-  }
+.custom-yt-container .yt-frame {
+  width: 100%;
+  height: 100%;
+}
 
-  .review-arrow svg {
-    width: 18px;
-    height: 18px;
-  }
+/* Invisible overlay across the entire video area */
+.yt-play-toggle-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+  z-index: 3;
+}
 
-  .review-person h3 {
-    font-size: 14px;
-  }
+/* Fades the overlay out when playing, reveals on hover */
+.yt-play-toggle-overlay.is-playing {
+  background: transparent;
+  opacity: 0;
+}
 
-  .review-rating svg {
-    width: 13px;
-    height: 13px;
-  }
+.yt-play-toggle-overlay.is-playing:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Circular centered play/pause button */
+.yt-control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(6, 43, 85, 0.9);
+  color: #f4c400;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease;
+}
+
+.yt-play-toggle-overlay:hover .yt-control-btn {
+  transform: scale(1.12);
+}
+
+.translate-x {
+  transform: translateX(2px); /* Optical center for the triangle play icon */
 }
