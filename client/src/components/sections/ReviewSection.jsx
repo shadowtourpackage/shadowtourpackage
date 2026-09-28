@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 
 import '../../styles/ReviewSection.css';
+import  reviewGallery  from '../../data/reviewGallery.js';
 
 const INSTAGRAM_HIGHLIGHTS_URL =
   'https://www.instagram.com/s/aGlnaGxpZ2h0OjE4MDUzMzQwMDQ0NDQxMjQ0?story_media_id=3820831953520844477_78515209510&stkn=bTB0cXI0a3k0dTh5';
@@ -15,55 +16,20 @@ const API_BASE =
   import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 /* =====================================================
-   FALLBACK REVIEWS
-===================================================== */
-
-const fallbackReviews = [
-  {
-    _id: 'fallback-1',
-    type: 'text',
-    name: 'Rahul',
-    destination: 'Chikmagalur',
-    rating: 5,
-    review:
-      'Amazing experience with Shadow Tour Packages. Everything was well organised and the trip was really enjoyable.',
-  },
-
-  {
-    _id: 'fallback-2',
-    type: 'video',
-    name: 'Customer Review',
-    destination: 'Chikmagalur',
-    rating: 5,
-    videoUrl: '/videos/reviews/review1.mp4',
-  },
-
-  {
-    _id: 'fallback-3',
-    type: 'text',
-    name: 'Anjali',
-    destination: 'Mysore',
-    rating: 5,
-    review:
-      'The whole journey was comfortable and memorable. Highly recommended for group trips.',
-  },
-
-  {
-    _id: 'fallback-4',
-    type: 'video',
-    name: 'Customer Review',
-    destination: 'Mysore',
-    rating: 5,
-    videoUrl: '/videos/reviews/review2.mp4',
-  },
-];
-
-/* =====================================================
    COMPONENT
 ===================================================== */
 
 export default function ReviewSection() {
-  const [reviews, setReviews] = useState(fallbackReviews);
+  /*
+   * Reviews contain:
+   *
+   * 1. Dynamic reviews from backend
+   * 2. 6 static video reviews from reviewGallery.js
+   *
+   * Static videos are always placed at the end.
+   */
+
+  const [reviews, setReviews] = useState(reviewGallery);
 
   const [current, setCurrent] = useState(0);
 
@@ -86,27 +52,46 @@ export default function ReviewSection() {
       const result = await response.json();
 
       /*
-       * Only replace fallback reviews when the backend
-       * actually returns reviews.
+       * If backend contains dynamic reviews:
+       *
+       * Dynamic Reviews
+       * +
+       * 6 Static Video Reviews
        */
+
       if (
         result &&
         Array.isArray(result.data) &&
         result.data.length > 0
       ) {
-        setReviews(result.data);
+        setReviews([
+          ...result.data,
+          ...reviewGallery,
+        ]);
+
+        setCurrent(0);
+      } else {
+        /*
+         * Backend has no reviews.
+         *
+         * Show only the 6 static videos.
+         */
+
+        setReviews(reviewGallery);
+
         setCurrent(0);
       }
     } catch (error) {
       /*
-       * Keep fallback reviews if the backend is unavailable.
+       * Backend unavailable.
        *
-       * IMPORTANT:
-       * The section will still render.
+       * Show only the 6 static videos.
        */
+
       console.error('Failed to load reviews:', error);
 
-      setReviews(fallbackReviews);
+      setReviews(reviewGallery);
+
       setCurrent(0);
     } finally {
       setLoading(false);
@@ -123,7 +108,7 @@ export default function ReviewSection() {
 
   /* =====================================================
      AUTO PLAY CAROUSEL
-     Changes review every 4.5 seconds
+     Changes review every 1.5 seconds
   ===================================================== */
 
   useEffect(() => {
@@ -401,19 +386,15 @@ export default function ReviewSection() {
               )
             }
           >
-  
-
             <span>
               View Instagram Reviews
             </span>
-
           </button>
 
         </div>
 
         {/* =================================================
             OPTIONAL BACKEND STATUS
-            Does NOT hide the review section
         ================================================= */}
 
         {loading && (
