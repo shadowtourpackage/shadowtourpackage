@@ -19,7 +19,7 @@ const app = express();
 app.use(
   cors({
     origin: [
-      'https://shadowtourpackage.vercel.app',
+      'https://shadowtourpackages.vercel.app',
       'http://localhost:5173', // Vite dev server
       'http://localhost:3000'
     ],
