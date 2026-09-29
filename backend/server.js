@@ -14,7 +14,7 @@ import {
 
 import { Booking } from './src/models/Booking.js';
 import { Review } from './src/models/Review.js';
-
+const PORT = process.env.PORT || 10000;
 const app = express();
 
 /* =====================================================
@@ -359,4 +359,7 @@ app.use((err, req, res, _next) => {
    VERCEL EXPORT
 ===================================================== */
 
+app.listen(PORT, () => {
+  console.log(`[Server] Running on port ${PORT}`);
+});
 export default app;
