@@ -1,20 +1,26 @@
 {
-  "services": {
-    "web": {
-      "rootDirectory": "client"
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/src/server.js",
+      "use": "@vercel/node"
     },
-    "api": {
-      "rootDirectory": "backend"
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "service": "api"
+      "dest": "backend/src/server.js"
     },
     {
       "src": "/(.*)",
-      "service": "web"
+      "dest": "client/$1"
     }
   ]
 }
