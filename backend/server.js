@@ -5,11 +5,11 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
-import { connectDB } from './config/db.js';
-import { verifyMailer, sendBookingNotification } from './config/mailer.js';
+import { connectDB } from './src/config/db.js';
+import { verifyMailer, sendBookingNotification } from './src/config/mailer.js';
 
-import { Booking } from './models/Booking.js';
-import { Review } from './models/Review.js';
+import { Booking } from './src/models/Booking.js';
+import { Review } from './src/models/Review.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
