@@ -78,9 +78,9 @@ export default function ContactSection() {
                     <span><Mail />shadowtourpackagesknr@gmail.com</span>
                     <span>
                         <FaWhatsapp size={24} />
-                        <a href={`https://wa.me/${phoneNumber}?text=Hi,I am here for Booking Enquiry`} target="_blank" rel="noopener noreferrer">
-                            Click to Chat on WhatsApp
-                        </a>
+
+                       +91 9447319218
+
                     </span>
                     <span>
                         <FaInstagram size={24} />
