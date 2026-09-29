@@ -25,7 +25,7 @@ verifyMailer();
 ===================================================== */
 app.use(
   cors({
-    origin: '*',
+    origin: 'http://shadowtourpackage.vercel.app',
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
