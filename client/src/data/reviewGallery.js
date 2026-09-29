@@ -1,18 +1,10 @@
 const reviewGallery = [
-  {
-    _id: 'static-video-3',
-    type: 'youtube',
-    name: 'Customer Review',
-    destination: 'Wayanad',
-    rating: 5,
-    isShort: true,
-    youtubeId: 'rnuzDaVjLv4',
-  },
+
   {
     _id: 'static-video-4',
     type: 'youtube',
     name: 'Customer Review',
-    destination: 'Coorg',
+    destination: 'Wayanad',
     rating: 5,
     isShort: true,
     youtubeId: 'srJnNYKZNaU',
@@ -21,7 +13,7 @@ const reviewGallery = [
     _id: 'static-video-5',
     type: 'youtube',
     name: 'Customer Review',
-    destination: 'Munnar',
+    destination: 'Kasargod',
     rating: 5,
     isShort: true,
     youtubeId: '/p7Kn2PPPzIc',
@@ -30,7 +22,7 @@ const reviewGallery = [
     _id: 'static-video-6',
     type: 'youtube',
     name: 'Student Experience',
-    destination: 'Tour Package',
+    destination: 'Wayanad',
     rating: 5,
     isShort: true, // Triggers 9:16 vertical shorts layout
     youtubeId: 'J3edaCiIxcs',
