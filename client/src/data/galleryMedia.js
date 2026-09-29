@@ -24,14 +24,6 @@ export const media = [
   },
   // Real Standard Landscape Video (Replace with your actual ID)
   {
-    id: '08',
-    kind: 'video',
-    isShort: false,
-    embedUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', // Don't leave YOUR_VIDEO_ID_02 here
-    alt: 'Shadow Tour Journey',
-    size: 'wide',
-  },
-  {
     id: '09',
     kind: 'photo',
     src: '/images/gallery/img4.png',
