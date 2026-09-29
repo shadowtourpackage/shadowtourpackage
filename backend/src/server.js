@@ -12,26 +12,34 @@ import { Booking } from './models/Booking.js';
 import { Review } from './models/Review.js';
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
-/* =====================================================
-   DATABASE & MAILER
-===================================================== */
-connectDB();
-verifyMailer();
 
 /* =====================================================
    MIDDLEWARE (MUST BE BEFORE ALL ROUTES)
 ===================================================== */
 app.use(
   cors({
-    origin: 'http://shadowtourpackage.vercel.app',
+    origin: [
+      'https://shadowtourpackage.vercel.app',
+      'http://localhost:5173', // Vite dev server
+      'http://localhost:3000'
+    ],
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
 app.use(express.json());
+
+// Ensure Database is connected before executing any route
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('[DB Connection Error]:', err.message);
+    res.status(500).json({ ok: false, message: 'Database connection failure' });
+  }
+});
 
 /* =====================================================
    ADMIN SCHEMA & MODEL ('admins' collection)
@@ -233,6 +241,16 @@ app.use((err, req, res, _next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`[Server] Running on port ${PORT}`);
-});
+/* =====================================================
+   LOCAL DEV vs VERCEL EXECUTION
+===================================================== */
+// Only listen when running locally, export for Vercel
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  verifyMailer();
+  app.listen(PORT, () => {
+    console.log(`[Server] Running locally on port ${PORT}`);
+  });
+}
+
+export default app;

@@ -1,8 +1,8 @@
 {
-  "name": "root-app",
+  "name": "shadow-tour-packages",
   "private": true,
   "scripts": {
-    "install:all": "npm install --prefix client && npm install --prefix server",
+    "install:all": "npm install --prefix backend && npm install --prefix client",
     "build:client": "npm run build --prefix client",
     "build": "npm run install:all && npm run build:client"
   }
