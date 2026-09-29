@@ -1,13 +1,12 @@
 const reviewGallery = [
-
   {
-    _id: 'static-video-4',
+    _id: 'static-video-6',
     type: 'youtube',
-    name: 'Customer Review',
+    name: 'Mathruka L P School Muringodi',
     destination: 'Wayanad',
     rating: 5,
-    isShort: true,
-    youtubeId: 'srJnNYKZNaU',
+    isShort: true, 
+    youtubeId: 'J3edaCiIxcs',
   },
   {
     _id: 'static-video-5',
@@ -17,16 +16,7 @@ const reviewGallery = [
     rating: 5,
     isShort: true,
     youtubeId: '/p7Kn2PPPzIc',
-  },
-  {
-    _id: 'static-video-6',
-    type: 'youtube',
-    name: 'Student Experience',
-    destination: 'Wayanad',
-    rating: 5,
-    isShort: true, // Triggers 9:16 vertical shorts layout
-    youtubeId: 'J3edaCiIxcs',
-  },
+  }
 ];
 
 export default reviewGallery;
