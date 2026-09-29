@@ -81,6 +81,7 @@ export default function WriteReviewSection({ onReviewSubmitted }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({
           name: formData.name.trim(),
@@ -227,7 +228,7 @@ export default function WriteReviewSection({ onReviewSubmitted }) {
                       size={26}
                       fill={
                         star <=
-                        (hoverRating || formData.rating)
+                          (hoverRating || formData.rating)
                           ? 'currentColor'
                           : 'none'
                       }
@@ -240,7 +241,7 @@ export default function WriteReviewSection({ onReviewSubmitted }) {
             {/* Name */}
             <div className="write-review-group">
               <label htmlFor="name">
-                Your Name 
+                Your Name
               </label>
 
               <input
@@ -265,7 +266,7 @@ export default function WriteReviewSection({ onReviewSubmitted }) {
             {/* Destination */}
             <div className="write-review-group">
               <label htmlFor="destination">
-                Destination Visited 
+                Destination Visited
               </label>
 
               <input
@@ -290,7 +291,7 @@ export default function WriteReviewSection({ onReviewSubmitted }) {
             {/* Review */}
             <div className="write-review-group">
               <label htmlFor="review">
-                Your Review 
+                Your Review
               </label>
 
               <textarea

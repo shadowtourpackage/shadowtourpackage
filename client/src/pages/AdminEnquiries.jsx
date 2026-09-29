@@ -1,330 +1,687 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Lock, RefreshCw, Calendar, Phone, Mail, Users, MapPin, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/+$/, '');
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-export default function AdminEnquiries({ navigateTo }) {
-  // 1. In-memory state only: ALWAYS defaults to false on every page visit or reload
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+const SUPABASE_PUBLISHABLE_KEY =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+export default function AdminLogin() {
+  /* =====================================================
+     AUTH STATE
+  ===================================================== */
+
+  const [isSignedIn, setIsSignedIn] = useState(false);
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [authError, setAuthError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [fetchError, setFetchError] = useState('');
+  const [error, setError] = useState('');
 
-  // 2. Fetch records only after credentials pass in this active session
-  const fetchEnquiries = async () => {
-    setLoading(true);
-    setFetchError('');
+  /* =====================================================
+     ENQUIRY STATE
+  ===================================================== */
+
+  const [bookings, setBookings] = useState([]);
+  const [loadingBookings, setLoadingBookings] =
+    useState(false);
+  const [bookingError, setBookingError] = useState('');
+
+  /* =====================================================
+     IMPORTANT:
+     
+     EVERY TIME /enquiry-board IS OPENED,
+     SHOW SIGN-IN FORM FIRST.
+     
+     We intentionally DO NOT restore the previous
+     localStorage login session here.
+  ===================================================== */
+
+  useEffect(() => {
+    localStorage.removeItem('shadow_admin');
+
+    setIsSignedIn(false);
+  }, []);
+
+  /* =====================================================
+     FETCH BOOKINGS AFTER LOGIN
+  ===================================================== */
+
+  useEffect(() => {
+    if (isSignedIn) {
+      fetchBookings();
+    }
+  }, [isSignedIn]);
+
+  /* =====================================================
+     FETCH BOOKINGS
+  ===================================================== */
+
+  const fetchBookings = async () => {
     try {
-      const res = await fetch(`${API_BASE}/bookings`);
-      if (!res.ok) {
-        throw new Error(`Server returned status ${res.status}`);
+      setLoadingBookings(true);
+      setBookingError('');
+
+      const response = await fetch(
+        `${API_URL}/bookings`,
+        {
+          method: 'GET',
+
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        throw new Error(
+          result.message ||
+            'Unable to load enquiries.'
+        );
       }
-      const result = await res.json();
-      if (result.ok) {
-        setEnquiries(result.data || []);
-      } else {
-        setFetchError(result.message || 'Failed to fetch enquiries.');
+
+      setBookings(result.data || []);
+    } catch (error) {
+      console.error(
+        'Bookings error:',
+        error
+      );
+
+      setBookingError(
+        error.message ||
+          'Unable to load enquiries.'
+      );
+    } finally {
+      setLoadingBookings(false);
+    }
+  };
+
+  /* =====================================================
+     LOGIN
+  ===================================================== */
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    setError('');
+
+    if (!username.trim() || !password) {
+      setError(
+        'Username and password are required.'
+      );
+
+      return;
+    }
+
+    if (!SUPABASE_PUBLISHABLE_KEY) {
+      setError(
+        'Supabase configuration is missing.'
+      );
+
+      console.error(
+        'VITE_SUPABASE_PUBLISHABLE_KEY is missing.'
+      );
+
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch(
+        `${API_URL}/admin-login`,
+        {
+          method: 'POST',
+
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+          },
+
+          body: JSON.stringify({
+            username: username.trim(),
+            password,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        setError(
+          result.message ||
+            'Invalid username or password.'
+        );
+
+        return;
       }
-    } catch (err) {
-      console.error('[AdminEnquiries Error]:', err);
-      setFetchError('Could not reach the server. Make sure your backend is running.');
+
+      /* ===============================================
+         LOGIN SUCCESS
+      =============================================== */
+
+      localStorage.setItem(
+        'shadow_admin',
+        JSON.stringify(result.user)
+      );
+
+      setUsername('');
+      setPassword('');
+      setError('');
+
+      /*
+       * DO NOT REDIRECT.
+       *
+       * Stay on /enquiry-board and display
+       * the enquiry board.
+       */
+
+      setIsSignedIn(true);
+
+    } catch (error) {
+      console.error(
+        'Admin login error:',
+        error
+      );
+
+      setError(
+        'Unable to connect to the server. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchEnquiries();
-    }
-  }, [isAuthenticated]);
-
   /* =====================================================
-     LOGIN (No storage save -> Resets on next page load)
+     LOGOUT
   ===================================================== */
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setAuthError('');
-    setIsSubmitting(true);
-
-    try {
-      const res = await fetch(`${API_BASE}/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: username.trim(),
-          password: password,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.ok) {
-        // Only set the state in current memory - never save to storage
-        setIsAuthenticated(true);
-        setAuthError('');
-      } else {
-        setAuthError(data.message || 'Invalid username or password.');
-      }
-    } catch {
-      setAuthError('Unable to connect to backend service.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
+    localStorage.removeItem(
+      'shadow_admin'
+    );
+
+    setIsSignedIn(false);
+
+    setBookings([]);
     setUsername('');
     setPassword('');
+    setError('');
+    setBookingError('');
   };
 
-  const handleReturnHome = (e) => {
-    e.preventDefault();
-    if (navigateTo) {
-      navigateTo('home');
-    } else {
-      window.location.href = '/';
-    }
-  };
+  /* =====================================================
+     SIGN-IN PAGE
+  ===================================================== */
 
-  const groupedEnquiries = enquiries.reduce((acc, item) => {
-    const rawDate = item.createdAt ? new Date(item.createdAt) : new Date();
-    const dateLabel = rawDate.toLocaleDateString('en-GB', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-
-    if (!acc[dateLabel]) {
-      acc[dateLabel] = [];
-    }
-    acc[dateLabel].push(item);
-    return acc;
-  }, {});
-
-  // =====================================================
-  // 1. ALWAYS SHOWS LOGIN FIRST ON ANY URL VISIT / REFRESH
-  // =====================================================
-  if (!isAuthenticated) {
+  if (!isSignedIn) {
     return (
       <div style={styles.authContainer}>
-        <a href="/" onClick={handleReturnHome} style={styles.logoAnchor} title="Back to Shadow Tours">
-          <img 
-            src="/images/logo.png" 
-            alt="Shadow Tour Packages" 
-            style={styles.loginLogo} 
-            onError={(e) => { e.target.style.display = 'none'; }}
+
+        {/* LOGO */}
+
+        <a
+          href="/"
+          style={styles.logoAnchor}
+        >
+          <img
+            src="/images/logo.png"
+            alt="Shadow Tour Packages"
+            style={styles.loginLogo}
           />
         </a>
 
+        {/* LOGIN CARD */}
+
         <div style={styles.authCard}>
-          <div style={{ textAlign: 'center', marginBottom: '22px' }}>
-            <Lock size={30} color="#3182ce" />
-            <h2 style={{ margin: '8px 0 2px', color: '#1a202c', fontSize: '20px' }}>Admin Portal</h2>
-            <p style={{ margin: 0, color: '#718096', fontSize: '13px' }}>Sign in to view submitted enquiries</p>
+
+          <div
+            style={{
+              textAlign: 'center',
+              marginBottom: '22px',
+            }}
+          >
+            <h1
+              style={{
+                margin: 0,
+                fontSize: '22px',
+                color: '#1a202c',
+                fontWeight: 700,
+              }}
+            >
+              Shadow Tour Packages
+            </h1>
+
+            <p
+              style={{
+                margin: '6px 0 0',
+                fontSize: '13px',
+                color: '#718096',
+              }}
+            >
+              Admin Login
+            </p>
           </div>
 
-          {authError && <div style={styles.errorAlert}>{authError}</div>}
+          {/* ERROR */}
 
-          <form onSubmit={handleLogin} style={styles.form}>
+          {error && (
+            <div style={styles.errorAlert}>
+              {error}
+            </div>
+          )}
+
+          {/* LOGIN FORM */}
+
+          <form
+            onSubmit={handleLogin}
+            style={styles.form}
+          >
+
+            {/* USERNAME */}
+
             <label style={styles.label}>
               Username
+
               <input
+                id="username"
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
+                onChange={(e) =>
+                  setUsername(e.target.value)
+                }
+                placeholder="Enter username"
+                autoComplete="username"
+                disabled={loading}
                 style={styles.input}
-                placeholder="Username"
-                disabled={isSubmitting}
-                autoComplete="off"
               />
             </label>
+
+            {/* PASSWORD */}
+
             <label style={styles.label}>
               Password
+
               <input
+                id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                onChange={(e) =>
+                  setPassword(e.target.value)
+                }
+                placeholder="Enter password"
+                autoComplete="current-password"
+                disabled={loading}
                 style={styles.input}
-                placeholder="••••••••"
-                disabled={isSubmitting}
               />
             </label>
-            <button 
-              type="submit" 
+
+            {/* LOGIN BUTTON */}
+
+            <button
+              type="submit"
+              disabled={loading}
               style={{
-                ...styles.submitBtn, 
-                opacity: isSubmitting ? 0.7 : 1,
-                cursor: isSubmitting ? 'not-allowed' : 'pointer'
+                ...styles.submitBtn,
+                opacity: loading ? 0.7 : 1,
+                cursor: loading
+                  ? 'not-allowed'
+                  : 'pointer',
               }}
-              disabled={isSubmitting}
             >
-              {isSubmitting ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  <Loader2 size={16} className="spin" /> Verifying...
-                </span>
-              ) : (
-                'Sign In'
-              )}
+              {loading
+                ? 'Signing in...'
+                : 'Sign In'}
             </button>
+
           </form>
 
-          <a href="/" onClick={handleReturnHome} style={styles.returnLink}>
-            <ArrowLeft size={15} /> Return to Shadow Tours Website
+          {/* RETURN TO WEBSITE */}
+
+          <a
+            href="/"
+            style={styles.returnLink}
+          >
+            ← Return to website
           </a>
+
         </div>
       </div>
     );
   }
 
-  // =====================================================
-  // 2. DASHBOARD VIEW (ACTIVE SESSION ONLY)
-  // =====================================================
+  /* =====================================================
+     ENQUIRY BOARD
+  ===================================================== */
+
   return (
     <div style={styles.pageWrap}>
-      <header style={styles.header}>
-        <div style={styles.headerInner}>
-          <div style={{ width: '120px' }}>
-            <a href="/" onClick={handleReturnHome} style={styles.backButton}>
-              <ArrowLeft size={16} /> Home
-            </a>
-          </div>
 
-          <a href="/" onClick={handleReturnHome} title="Go to Home" style={styles.centerLogoLink}>
-            <img 
-              src="/images/logo.png" 
-              alt="Shadow Tour Packages" 
-              style={styles.dashLogo} 
-              onError={(e) => { e.target.style.display = 'none'; }}
+      {/* =================================================
+          HEADER
+      ================================================= */}
+
+      <header style={styles.header}>
+
+        <div style={styles.headerInner}>
+
+          {/* BACK */}
+
+          <a
+            href="/"
+            style={styles.backButton}
+          >
+            ← Back to Website
+          </a>
+
+          {/* LOGO */}
+
+          <a
+            href="/"
+            style={styles.centerLogoLink}
+          >
+            <img
+              src="/images/logo.png"
+              alt="Shadow Tour Packages"
+              style={styles.dashLogo}
             />
           </a>
 
+          {/* HEADER RIGHT */}
+
           <div style={styles.headerRight}>
-            <button onClick={fetchEnquiries} style={styles.iconBtn} disabled={loading}>
-              <RefreshCw size={14} className={loading ? 'spin' : ''} /> Refresh
+
+            <button
+              type="button"
+              onClick={fetchBookings}
+              disabled={loadingBookings}
+              style={styles.iconBtn}
+            >
+              {loadingBookings
+                ? 'Refreshing...'
+                : 'Refresh'}
             </button>
-            <button onClick={handleLogout} style={styles.logoutBtn}>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              style={styles.logoutBtn}
+            >
               Logout
             </button>
+
           </div>
+
         </div>
+
       </header>
 
+      {/* =================================================
+          MAIN
+      ================================================= */}
+
       <main style={styles.main}>
+
         <div style={styles.titleRow}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '22px', color: '#1a202c' }}>Enquiry Log</h1>
-            <p style={{ margin: '4px 0 0', color: '#718096', fontSize: '13px' }}>
-              Grouped chronologically by date received
-            </p>
-          </div>
+
+          <h1
+            style={{
+              margin: 0,
+              fontSize: '28px',
+              fontWeight: 700,
+            }}
+          >
+            Customer Enquiries
+          </h1>
+
+          <p
+            style={{
+              margin: '6px 0 0',
+              color: '#718096',
+              fontSize: '14px',
+            }}
+          >
+            Manage customer tour enquiries.
+          </p>
+
         </div>
 
-        {fetchError && <div style={styles.errorAlert}>{fetchError}</div>}
+        {/* BOOKING ERROR */}
 
-        {loading && enquiries.length === 0 ? (
-          <div style={styles.centerNotice}>Fetching records...</div>
-        ) : Object.keys(groupedEnquiries).length === 0 ? (
-          <div style={styles.centerNotice}>No customer enquiries found.</div>
+        {bookingError && (
+          <div style={styles.errorAlert}>
+            {bookingError}
+          </div>
+        )}
+
+        {/* =================================================
+            LOADING
+        ================================================= */}
+
+        {loadingBookings ? (
+
+          <div style={styles.centerNotice}>
+            Loading enquiries...
+          </div>
+
+        ) : bookings.length === 0 ? (
+
+          /* =================================================
+             EMPTY
+          ================================================= */
+
+          <div style={styles.centerNotice}>
+            No enquiries found.
+          </div>
+
         ) : (
-          Object.entries(groupedEnquiries).map(([dateStr, items]) => (
-            <div key={dateStr} style={styles.dateBlock}>
-              <div style={styles.groupHeader}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Calendar size={18} color="#2b6cb0" />
-                  <h3 style={{ margin: 0, fontSize: '16px', color: '#2d3748' }}>{dateStr}</h3>
-                </div>
-                <span style={styles.countPill}>
-                  {items.length} {items.length === 1 ? 'Enquiry' : 'Enquiries'}
-                </span>
-              </div>
 
-              <div style={styles.tableCard}>
-                <table style={styles.table}>
-                  <thead>
-                    <tr>
-                      <th style={styles.th}>Reference</th>
-                      <th style={styles.th}>Customer</th>
-                      <th style={styles.th}>Destination</th>
-                      <th style={styles.th}>Travellers</th>
-                      <th style={styles.th}>Travel Date</th>
-                      <th style={styles.th}>Notification</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {items.map((enq) => (
-                      <tr key={enq._id || enq.bookingReference} style={styles.tr}>
-                        <td style={styles.td}>
-                          <span style={styles.refPill}>{enq.bookingReference || 'N/A'}</span>
-                        </td>
-                        <td style={styles.td}>
-                          <div style={{ fontWeight: 600, color: '#1a202c' }}>{enq.name}</div>
-                          <div style={styles.infoLine}>
-                            <Phone size={12} color="#718096" />
-                            <a href={`tel:${enq.phone}`} style={styles.link}>{enq.phone}</a>
-                          </div>
-                          <div style={styles.infoLine}>
-                            <Mail size={12} color="#718096" />
-                            {enq.email ? (
-                              <a href={`mailto:${enq.email}`} style={styles.link}>{enq.email}</a>
-                            ) : (
-                              <span style={{ color: '#a0aec0', fontStyle: 'italic', fontSize: '12px' }}>Not provided</span>
-                            )}
-                          </div>
-                        </td>
-                        <td style={styles.td}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', textTransform: 'capitalize' }}>
-                            <MapPin size={14} color="#e53e3e" />
-                            {enq.destination}
-                          </div>
-                        </td>
-                        <td style={styles.td}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <Users size={14} color="#718096" />
-                            {enq.travellers}
-                          </div>
-                        </td>
-                        <td style={styles.td}>
-                          {enq.travelDate ? (
-                            new Date(enq.travelDate).toLocaleDateString('en-IN', {
+          /* =================================================
+             BOOKINGS TABLE
+          ================================================= */
+
+          <div style={styles.tableCard}>
+
+            <table style={styles.table}>
+
+              <thead>
+
+                <tr>
+
+                  <th style={styles.th}>
+                    Reference
+                  </th>
+
+                  <th style={styles.th}>
+                    Customer
+                  </th>
+
+                  <th style={styles.th}>
+                    Destination
+                  </th>
+
+                  <th style={styles.th}>
+                    Category
+                  </th>
+
+                  <th style={styles.th}>
+                    Travellers
+                  </th>
+
+                  <th style={styles.th}>
+                    Travel Date
+                  </th>
+
+                  <th style={styles.th}>
+                    Email Status
+                  </th>
+
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                {bookings.map((booking) => (
+
+                  <tr
+                    key={
+                      booking._id ||
+                      booking.id ||
+                      booking.booking_reference
+                    }
+                    style={styles.tr}
+                  >
+
+                    {/* REFERENCE */}
+
+                    <td style={styles.td}>
+
+                      <span
+                        style={styles.refPill}
+                      >
+                        {booking.booking_reference ||
+                          'N/A'}
+                      </span>
+
+                    </td>
+
+                    {/* CUSTOMER */}
+
+                    <td style={styles.td}>
+
+                      <strong>
+                        {booking.name ||
+                          'N/A'}
+                      </strong>
+
+                      <div
+                        style={styles.infoLine}
+                      >
+                        <a
+                          href={`tel:${booking.phone}`}
+                          style={styles.link}
+                        >
+                          {booking.phone ||
+                            'No phone'}
+                        </a>
+                      </div>
+
+                      {booking.email && (
+                        <div
+                          style={styles.infoLine}
+                        >
+                          <a
+                            href={`mailto:${booking.email}`}
+                            style={styles.link}
+                          >
+                            {booking.email}
+                          </a>
+                        </div>
+                      )}
+
+                    </td>
+
+                    {/* DESTINATION */}
+
+                    <td style={styles.td}>
+                      {booking.destination ||
+                        'N/A'}
+                    </td>
+
+                    {/* CATEGORY */}
+
+                    <td style={styles.td}>
+                      {booking.category ||
+                        'N/A'}
+                    </td>
+
+                    {/* TRAVELLERS */}
+
+                    <td style={styles.td}>
+                      {booking.travellers ||
+                        1}
+                    </td>
+
+                    {/* TRAVEL DATE */}
+
+                    <td style={styles.td}>
+
+                      {booking.travel_date
+                        ? new Date(
+                            booking.travel_date
+                          ).toLocaleDateString(
+                            'en-IN',
+                            {
                               day: 'numeric',
                               month: 'short',
-                              year: 'numeric'
-                            })
-                          ) : (
-                            <span style={{ color: '#a0aec0' }}>Flexible</span>
-                          )}
-                        </td>
-                        <td style={styles.td}>
-                          {enq.emailNotificationStatus === 'sent' ? (
-                            <span style={styles.badgeSent}><CheckCircle size={13} /> Dispatched</span>
-                          ) : (
-                            <span style={styles.badgePending}><AlertCircle size={13} /> {enq.emailNotificationStatus || 'Pending'}</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ))
+                              year: 'numeric',
+                            }
+                          )
+                        : 'Not specified'}
+
+                    </td>
+
+                    {/* EMAIL STATUS */}
+
+                    <td style={styles.td}>
+
+                      {booking.emailNotificationStatus ===
+                      'sent' ? (
+
+                        <span
+                          style={
+                            styles.badgeSent
+                          }
+                        >
+                          ✓ Sent
+                        </span>
+
+                      ) : (
+
+                        <span
+                          style={
+                            styles.badgePending
+                          }
+                        >
+                          {booking.emailNotificationStatus ||
+                            'Pending'}
+                        </span>
+
+                      )}
+
+                    </td>
+
+                  </tr>
+
+                ))}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
         )}
+
       </main>
+
     </div>
   );
 }
 
+/* =====================================================
+   STYLES
+===================================================== */
+
 const styles = {
+  /* ===================================================
+     LOGIN
+  =================================================== */
+
   authContainer: {
     minHeight: '100vh',
     display: 'flex',
@@ -332,44 +689,58 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#0f172a',
-    padding: '20px'
+    padding: '20px',
+    boxSizing: 'border-box',
   },
+
   logoAnchor: {
     display: 'inline-block',
-    marginBottom: '20px'
+    marginBottom: '20px',
   },
+
   loginLogo: {
     height: '80px',
-    objectFit: 'contain'
+    objectFit: 'contain',
   },
+
   authCard: {
     backgroundColor: '#ffffff',
     width: '100%',
     maxWidth: '380px',
     borderRadius: '12px',
     padding: '28px',
-    boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
+    boxShadow:
+      '0 10px 25px rgba(0,0,0,0.3)',
+    boxSizing: 'border-box',
   },
+
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '14px'
+    gap: '14px',
   },
+
   label: {
     fontSize: '13px',
     fontWeight: 600,
     color: '#4a5568',
     display: 'flex',
     flexDirection: 'column',
-    gap: '5px'
+    gap: '5px',
   },
+
   input: {
     padding: '10px 12px',
     borderRadius: '6px',
     border: '1px solid #cbd5e0',
     fontSize: '14px',
-    outline: 'none'
+    outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
+    backgroundColor: '#ffffff',
+    color: '#1a202c',
   },
+
   submitBtn: {
     backgroundColor: '#0f172a',
     color: '#ffffff',
@@ -381,8 +752,10 @@ const styles = {
     marginTop: '6px',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    fontSize: '14px',
   },
+
   returnLink: {
     display: 'flex',
     alignItems: 'center',
@@ -391,38 +764,59 @@ const styles = {
     marginTop: '18px',
     color: '#718096',
     fontSize: '13px',
-    textDecoration: 'none'
+    textDecoration: 'none',
   },
+
+  errorAlert: {
+    backgroundColor: '#fef2f2',
+    color: '#b91c1c',
+    padding: '12px',
+    borderRadius: '6px',
+    marginBottom: '18px',
+    border: '1px solid #fecaca',
+    fontSize: '14px',
+  },
+
+  /* ===================================================
+     ENQUIRY BOARD
+  =================================================== */
+
   pageWrap: {
     minHeight: '100vh',
     backgroundColor: '#f8fafc',
     color: '#1a202c',
-    fontFamily: 'system-ui, -apple-system, sans-serif'
+    fontFamily:
+      'system-ui, -apple-system, sans-serif',
   },
+
   header: {
     backgroundColor: '#ffffff',
     borderBottom: '1px solid #e2e8f0',
     padding: '10px 24px',
     position: 'sticky',
     top: 0,
-    zIndex: 20
+    zIndex: 20,
   },
+
   headerInner: {
     maxWidth: '1200px',
     margin: '0 auto',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
+
   centerLogoLink: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
+
   dashLogo: {
     height: '52px',
-    objectFit: 'contain'
+    objectFit: 'contain',
   },
+
   backButton: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -430,14 +824,16 @@ const styles = {
     textDecoration: 'none',
     color: '#4a5568',
     fontSize: '13px',
-    fontWeight: 500
+    fontWeight: 500,
   },
+
   headerRight: {
     width: '180px',
     display: 'flex',
     justifyContent: 'flex-end',
-    gap: '10px'
+    gap: '10px',
   },
+
   iconBtn: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -447,8 +843,9 @@ const styles = {
     border: 'none',
     borderRadius: '6px',
     cursor: 'pointer',
-    fontSize: '12px'
+    fontSize: '12px',
   },
+
   logoutBtn: {
     padding: '7px 12px',
     backgroundColor: '#fee2e2',
@@ -457,47 +854,35 @@ const styles = {
     borderRadius: '6px',
     cursor: 'pointer',
     fontSize: '12px',
-    fontWeight: 600
+    fontWeight: 600,
   },
+
   main: {
     maxWidth: '1200px',
     margin: '28px auto',
-    padding: '0 20px'
+    padding: '0 20px',
   },
+
   titleRow: {
-    marginBottom: '24px'
+    marginBottom: '24px',
   },
-  dateBlock: {
-    marginBottom: '32px'
-  },
-  groupHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: '10px',
-    padding: '0 4px'
-  },
-  countPill: {
-    backgroundColor: '#e2e8f0',
-    color: '#4a5568',
-    fontSize: '12px',
-    fontWeight: 600,
-    padding: '2px 10px',
-    borderRadius: '12px'
-  },
+
   tableCard: {
     backgroundColor: '#ffffff',
     borderRadius: '8px',
     border: '1px solid #e2e8f0',
     overflowX: 'auto',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+    boxShadow:
+      '0 1px 3px rgba(0,0,0,0.03)',
   },
+
   table: {
     width: '100%',
     borderCollapse: 'collapse',
     textAlign: 'left',
-    fontSize: '14px'
+    fontSize: '14px',
   },
+
   th: {
     backgroundColor: '#f8fafc',
     padding: '12px 16px',
@@ -506,15 +891,19 @@ const styles = {
     color: '#4a5568',
     fontSize: '12px',
     textTransform: 'uppercase',
-    letterSpacing: '0.5px'
+    letterSpacing: '0.5px',
+    whiteSpace: 'nowrap',
   },
+
   tr: {
-    borderBottom: '1px solid #f1f5f9'
+    borderBottom: '1px solid #f1f5f9',
   },
+
   td: {
     padding: '14px 16px',
-    verticalAlign: 'middle'
+    verticalAlign: 'middle',
   },
+
   refPill: {
     fontFamily: 'monospace',
     fontWeight: 700,
@@ -522,19 +911,22 @@ const styles = {
     color: '#2563eb',
     padding: '4px 8px',
     borderRadius: '4px',
-    fontSize: '12px'
+    fontSize: '12px',
   },
+
   infoLine: {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
     fontSize: '13px',
-    marginTop: '3px'
+    marginTop: '3px',
   },
+
   link: {
     color: '#2563eb',
-    textDecoration: 'none'
+    textDecoration: 'none',
   },
+
   badgeSent: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -544,8 +936,9 @@ const styles = {
     padding: '3px 8px',
     borderRadius: '4px',
     fontSize: '12px',
-    fontWeight: 600
+    fontWeight: 600,
   },
+
   badgePending: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -555,23 +948,15 @@ const styles = {
     padding: '3px 8px',
     borderRadius: '4px',
     fontSize: '12px',
-    fontWeight: 600
+    fontWeight: 600,
   },
-  errorAlert: {
-    backgroundColor: '#fef2f2',
-    color: '#b91c1c',
-    padding: '12px',
-    borderRadius: '6px',
-    marginBottom: '18px',
-    border: '1px solid #fecaca',
-    fontSize: '14px'
-  },
+
   centerNotice: {
     textAlign: 'center',
     padding: '50px',
     backgroundColor: '#ffffff',
     borderRadius: '8px',
     color: '#94a3b8',
-    border: '1px dashed #cbd5e1'
-  }
+    border: '1px dashed #cbd5e1',
+  },
 };
