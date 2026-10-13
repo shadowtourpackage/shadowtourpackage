@@ -262,12 +262,9 @@ export default {
 
               review:
                 reviewText,
-
-              video_url:
-                cleanVideoUrl,
-
+                
               approved:
-                false,
+                true,
             })
             .select("*")
             .single();

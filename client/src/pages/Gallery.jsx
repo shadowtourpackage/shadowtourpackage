@@ -264,6 +264,7 @@ function MediaTile({ item, index, playingId, onPlay, onPause, onOpen }) {
 
       {/* Lightbox Trigger */}
       <button
+      style={{ backgroundColor: 'transparent',border: '1px solid transparent'}}
         type="button"
         className="gallery-page__expand"
         onClick={(e) => {

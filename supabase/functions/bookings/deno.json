@@ -1,6 +1,36 @@
-{
-  "imports": {
-    "@supabase/functions-js": "jsr:@supabase/functions-js@^2",
-    "@supabase/server": "npm:@supabase/server@^1"
-  }
-}
+I am starting a business. Help me to build a ecommerce weebsite. i am going to sell ULtra HD wall posters through online. which is in A4 A3 size .
+1.I need a aunthitaction for users
+2.Nav bar having Logo Home,shop,products,My profile
+3.Home Page should contain 
+                   1.Hero section having Logo ,Motto and  small description
+                   2.A section heading show by categories having catrgories of card like God,Cars,Footballs,anime,actor,actress having just image on it
+		   3.A section heading Top sellers put the cards god and anime and combo offer
+		   4.A section for cutomer review which is screenshot from mobile 3D coursel effect
+		   5.A section like for:-
+					Interest free Payment
+     					Premium HD print
+					100% Genuine Product
+		   6.A section for Contact Details
+		   7.A section for privacy policy, return policy, shipping policy,terms and comdtions
+4.Shop page should contain
+		   1.A section contain a filter which is for categories All,God,Cars,Footballs,anime,actor,actress. whenever a user filter
+                     there should see five indivudaul cards and a card which is combo offer. each cards should have Image of poster ,Buy now, add to cart ,option also need A3,A4 suggetion.
+		   2. A section same as like for:-
+					Interest free Payment
+     					Premium HD print
+					100% Genuine Product
+		   3.A section for Contact Details
+		   4.A section for privacy policy, return policy, shipping policy,terms and comdtions
+5.A checkout Page when purchasing should have:
+		   1.A section for Address Filling 
+		   2.A section for Coupon
+      		   3.A section for Razorpayment
+And need a notice that if paymenting having any problem give Alert that Please contact through whatsapp some technical error happening. 
+Need a /admin-panel for
+Login screen i will add details on database.
+Adding Cards , new Categories and Coupon offer and dedicated redirecting page for check the order submission.
+some fucntions:-
+when user click on products on navbar give a dropdown like thing having category and when click on specific category go to that specific category on  shope page,same for categroies card in home page.
+My profile should have order details.
+make privacy policy, return policy, shipping policy,terms and comdtions to Toggle Dropdown and i will add the important information.please reserve for it.
+
